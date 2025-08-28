@@ -62,6 +62,26 @@ function Sidebar() {
                             <span className="sidebar_menu fw-medium">Certificate</span>
                         </Link>
                     </Nav.Item>
+                    <Nav.Item className='mb-2'>
+                        <Link
+                            to="/faq"
+                            className="text-decoration-none nav-item text-white"
+                            onClick={handleLinkClick}
+                        >
+                            <MdOutlineDoubleArrow className="me-1" />
+                            <span className="sidebar_menu fw-medium">Faq</span>
+                        </Link>
+                    </Nav.Item>
+                    <Nav.Item className='mb-2'>
+                        <Link
+                            to="/productAdminToggle"
+                            className="text-decoration-none nav-item text-white"
+                            onClick={handleLinkClick}
+                        >
+                            <MdOutlineDoubleArrow className="me-1" />
+                            <span className="sidebar_menu fw-medium">Product</span>
+                        </Link>
+                    </Nav.Item>
                 </Nav>
                 <div className="logout-btn">
                     <ButtonComponent btn="Log Out" onClick={logout} />
@@ -114,6 +134,26 @@ function Sidebar() {
                             >
                                 <MdOutlineDoubleArrow className="me-1" />
                                 <span className="sidebar_menu fw-medium">Certificate</span>
+                            </Link>
+                        </Nav.Item>
+                        <Nav.Item className='mb-2'>
+                            <Link
+                                to="/faq"
+                                className="text-decoration-none nav-item text-white"
+                                onClick={handleLinkClick}
+                            >
+                                <MdOutlineDoubleArrow className="me-1" />
+                                <span className="sidebar_menu fw-medium">Faq</span>
+                            </Link>
+                        </Nav.Item>
+                        <Nav.Item className='mb-2'>
+                            <Link
+                                to="/productAdminToggle"
+                                className="text-decoration-none nav-item text-white"
+                                onClick={handleLinkClick}
+                            >
+                                <MdOutlineDoubleArrow className="me-1" />
+                                <span className="sidebar_menu fw-medium">Product</span>
                             </Link>
                         </Nav.Item>
                     </Nav>

@@ -7,6 +7,8 @@ import Sidebar from './Component/Sidebar';
 import Counter from './Pages/HomePage/Counter';
 import Testimonial from './Pages/HomePage/Testimonial';
 import Certificates from './Pages/HomePage/Certificates';
+import Faq from './Pages/AboutPage/Faq';
+import ProductAdminToggle from './Pages/ProductPage/ProductAdminToggle';
 
 function App() {
 
@@ -28,8 +30,10 @@ function App() {
                   <Routes>
                     <Route path='/' element={<Counter setlogin={setlogin} />} />
                     <Route path='/counter' element={<Counter setlogin={setlogin} />} />
-                    <Route path='/testimonial' element={<Testimonial setlogin={setlogin} />} />
-                    <Route path='/certificate' element={<Certificates setlogin={setlogin} />} />
+                    <Route path='/testimonial' element={<Testimonial />} />
+                    <Route path='/certificate' element={<Certificates />} />
+                    <Route path='/faq' element={<Faq />} />
+                    <Route path='/productAdminToggle' element={<ProductAdminToggle />} />
                   </Routes>
                 </div>
               </>
