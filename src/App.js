@@ -9,6 +9,8 @@ import Testimonial from './Pages/HomePage/Testimonial';
 import Certificates from './Pages/HomePage/Certificates';
 import Faq from './Pages/AboutPage/Faq';
 import ProductAdminToggle from './Pages/ProductPage/ProductAdminToggle';
+import MainProductData from './Pages/ProductPage/MainProductData';
+import HomeAbout from './Pages/HomePage/HomeAbout';
 
 function App() {
 
@@ -28,12 +30,14 @@ function App() {
                 <Sidebar />
                 <div className="main-content p-2 p-lg-4 mt-5 mt-lg-0 mt-md-0 flex-grow-1">
                   <Routes>
-                    <Route path='/' element={<Counter setlogin={setlogin} />} />
-                    <Route path='/counter' element={<Counter setlogin={setlogin} />} />
+                    <Route path='/' element={<HomeAbout setlogin={setlogin} />} />
+                    <Route path='/about' element={<HomeAbout setlogin={setlogin} />} />
+                    <Route path='/counter' element={<Counter />} />
                     <Route path='/testimonial' element={<Testimonial />} />
                     <Route path='/certificate' element={<Certificates />} />
                     <Route path='/faq' element={<Faq />} />
                     <Route path='/productAdminToggle' element={<ProductAdminToggle />} />
+                    <Route path='/ProductData' element={<MainProductData />} />
                   </Routes>
                 </div>
               </>

@@ -34,6 +34,16 @@ function Sidebar() {
                 <Nav className="flex-column p-2 pt-0">
                     <Nav.Item className="mt-4 mb-2">
                         <Link
+                            to="/about"
+                            className="text-decoration-none nav-item text-white"
+                            onClick={handleLinkClick}
+                        >
+                            <MdOutlineDoubleArrow className="me-1" />
+                            <span className="sidebar_menu fw-medium">About Us</span>
+                        </Link>
+                    </Nav.Item>
+                    <Nav.Item className="mb-2">
+                        <Link
                             to="/counter"
                             className="text-decoration-none nav-item text-white"
                             onClick={handleLinkClick}
@@ -79,7 +89,17 @@ function Sidebar() {
                             onClick={handleLinkClick}
                         >
                             <MdOutlineDoubleArrow className="me-1" />
-                            <span className="sidebar_menu fw-medium">Product</span>
+                            <span className="sidebar_menu fw-medium">Add Product</span>
+                        </Link>
+                    </Nav.Item>
+                    <Nav.Item className='mb-2'>
+                        <Link
+                            to="/ProductData"
+                            className="text-decoration-none nav-item text-white"
+                            onClick={handleLinkClick}
+                        >
+                            <MdOutlineDoubleArrow className="me-1" />
+                            <span className="sidebar_menu fw-medium">Product Data</span>
                         </Link>
                     </Nav.Item>
                 </Nav>
@@ -107,6 +127,16 @@ function Sidebar() {
                     </div>
                     <Nav className="flex-column p-2">
                         <Nav.Item className="mt-4 mb-2">
+                            <Link
+                                to="/about"
+                                className="text-decoration-none nav-item text-white"
+                                onClick={handleLinkClick}
+                            >
+                                <MdOutlineDoubleArrow className="me-1" />
+                                <span className="sidebar_menu fw-medium">About Us</span>
+                            </Link>
+                        </Nav.Item>
+                        <Nav.Item className="mb-2">
                             <Link
                                 to="/counter"
                                 className="text-decoration-none nav-item text-white"
@@ -153,7 +183,17 @@ function Sidebar() {
                                 onClick={handleLinkClick}
                             >
                                 <MdOutlineDoubleArrow className="me-1" />
-                                <span className="sidebar_menu fw-medium">Product</span>
+                                <span className="sidebar_menu fw-medium">Add Product</span>
+                            </Link>
+                        </Nav.Item>
+                        <Nav.Item className='mb-2'>
+                            <Link
+                                to="/ProductData"
+                                className="text-decoration-none nav-item text-white"
+                                onClick={handleLinkClick}
+                            >
+                                <MdOutlineDoubleArrow className="me-1" />
+                                <span className="sidebar_menu fw-medium">Product Data</span>
                             </Link>
                         </Nav.Item>
                     </Nav>

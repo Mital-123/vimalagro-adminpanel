@@ -1,33 +1,38 @@
 import React, { useState, useRef, useEffect } from "react";
 import { FaDatabase, FaPlus, FaTrash } from "react-icons/fa";
 import Swal from "sweetalert2";
+import axios from "axios";
+
+const API_URL = "https://backendvimalagro.onrender.com/certificate";
 
 function Certificates() {
-
     const [certificateImage, setCertificateImage] = useState(null);
     const [tableData, setTableData] = useState([]);
     const fileInputRef = useRef(null);
 
+    // Fetch Certificates (GET)
     useEffect(() => {
-        const savedData = localStorage.getItem("certificates");
-        if (savedData) {
-            setTableData(JSON.parse(savedData));
-        }
+        fetchCertificates();
     }, []);
 
-    useEffect(() => {
-        if (tableData.length > 0) {
-            localStorage.setItem("certificates", JSON.stringify(tableData));
-        } else {
-            localStorage.removeItem("certificates");
+    const fetchCertificates = async () => {
+        try {
+            const res = await axios.get(API_URL);
+            // sort by createdAt ascending (oldest first, newest last)
+            const sorted = res.data.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+            setTableData(sorted);
+        } catch (error) {
+            console.error("Error fetching certificates:", error);
         }
-    }, [tableData]);
+    };
 
+    // File change handler
     const handleFileChange = (e) => {
         setCertificateImage(e.target.files[0]);
     };
 
-    const handleSubmit = (e) => {
+    // Add Certificate (POST)
+    const handleSubmit = async (e) => {
         e.preventDefault();
 
         if (!certificateImage) {
@@ -39,14 +44,13 @@ function Certificates() {
             return;
         }
 
-        const reader = new FileReader();
-        reader.onloadend = () => {
-            const newCertificate = {
-                id: Date.now(),
-                image: reader.result, // 👉 base64 string
-            };
+        const formData = new FormData();
+        formData.append("certificateimage", certificateImage); // ✅ backend expects this key
 
-            setTableData((prev) => [...prev, newCertificate]);
+        try {
+            await axios.post(API_URL, formData, {
+                headers: { "Content-Type": "multipart/form-data" },
+            });
 
             Swal.fire({
                 icon: "success",
@@ -56,17 +60,19 @@ function Certificates() {
                 showConfirmButton: false,
             });
 
-            // reset input
             setCertificateImage(null);
-            if (fileInputRef.current) {
-                fileInputRef.current.value = "";
-            }
-        };
+            if (fileInputRef.current) fileInputRef.current.value = "";
 
-        reader.readAsDataURL(certificateImage);
+            fetchCertificates(); // refresh list
+        } catch (error) {
+            console.error("Error uploading certificate:", error);
+            Swal.fire("Error", "Failed to upload certificate", "error");
+        }
     };
 
-    const handleDelete = (id) => {
+
+    // Delete Certificate (DELETE)
+    const handleDelete = async (id) => {
         Swal.fire({
             title: "Are you sure?",
             text: "This will delete the certificate!",
@@ -75,12 +81,23 @@ function Certificates() {
             confirmButtonColor: "#d33",
             cancelButtonColor: "#3085d6",
             confirmButtonText: "Yes, delete it!",
-        }).then((result) => {
+        }).then(async (result) => {
             if (result.isConfirmed) {
-                const updatedData = tableData.filter((item) => item.id !== id);
-                setTableData(updatedData);
+                try {
+                    await axios.delete(`${API_URL}/${id}`);
+                    fetchCertificates(); // refresh list
 
-                Swal.fire("Deleted!", "Certificate has been deleted.", "success");
+                    Swal.fire({
+                        title: "Deleted!",
+                        text: "Certificate has been deleted.",
+                        icon: "success",
+                        timer: 2000,
+                        showConfirmButton: false,
+                    });
+                } catch (error) {
+                    console.error("Error deleting certificate:", error);
+                    Swal.fire("Error", "Failed to delete certificate", "error");
+                }
             }
         });
     };
@@ -148,10 +165,10 @@ function Certificates() {
                         <tbody className="pera">
                             {tableData.length > 0 ? (
                                 tableData.map((item) => (
-                                    <tr key={item.id}>
+                                    <tr key={item._id}>
                                         <td>
                                             <img
-                                                src={item.image}
+                                                src={item.certificateimage}   // ✅ fix here
                                                 alt="certificate"
                                                 style={{
                                                     width: "60px",
@@ -164,7 +181,7 @@ function Certificates() {
                                             <FaTrash
                                                 className="text-danger fs-5"
                                                 style={{ cursor: "pointer" }}
-                                                onClick={() => handleDelete(item.id)}
+                                                onClick={() => handleDelete(item._id)}
                                             />
                                         </td>
                                     </tr>
@@ -177,6 +194,7 @@ function Certificates() {
                                 </tr>
                             )}
                         </tbody>
+
                     </table>
                 </div>
             </div>
@@ -184,4 +202,4 @@ function Certificates() {
     );
 }
 
-export default Certificates
+export default Certificates;

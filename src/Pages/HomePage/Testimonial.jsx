@@ -1,45 +1,56 @@
 import React, { useState, useEffect, useRef } from "react";
 import { FaDatabase, FaEdit, FaPlus, FaTrash } from "react-icons/fa";
 import Swal from "sweetalert2";
+import axios from "axios";
 
 function Testimonial() {
 
     const [formData, setFormData] = useState({
-        name: "",
-        description: "",
-        CustomerImage: null,
+        testimonialname: "",
+        testimonialpera: "",
+        testimonialimage: null,
     });
-
+    
     const [tableData, setTableData] = useState([]);
     const [isEditing, setIsEditing] = useState(false);
     const [editId, setEditId] = useState(null);
     const fileInputRef = useRef(null);
 
+    const API_URL = "https://backendvimalagro.onrender.com/testimonial";
+
+    // Fetch testimonials from API
+    const fetchTestimonials = async () => {
+        try {
+            const response = await axios.get(API_URL);
+            setTableData(response.data);
+        } catch (error) {
+            console.error("Error fetching testimonials:", error);
+        }
+    };
+
     useEffect(() => {
-        const storedData = JSON.parse(localStorage.getItem("testimonialData")) || [];
-        setTableData(storedData);
+        fetchTestimonials();
     }, []);
 
     const handleChange = (e) => {
         const { name, value, files } = e.target;
 
-        if (name === "CustomerImage") {
+        if (name === "testimonialimage") {
             setFormData({ ...formData, [name]: files[0] });
-        } else if (name === "description") {
-            // check word count (max 25 words)
+        } else if (name === "testimonialpera") {
             const words = value.trim().split(/\s+/);
             if (words.length <= 25) {
-                setFormData({ ...formData, description: value });
+                setFormData({ ...formData, [name]: value });
             }
         } else {
             setFormData({ ...formData, [name]: value });
         }
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
 
-        if (!formData.name || !formData.description || (!formData.CustomerImage && !isEditing)) {
+        if (!formData.testimonialname || !formData.testimonialpera || (!formData.testimonialimage && !isEditing)) {
             Swal.fire({
                 icon: "warning",
                 title: "All Fields Required!",
@@ -48,80 +59,37 @@ function Testimonial() {
             return;
         }
 
-        if (isEditing) {
-            // EDIT FUNCTIONALITY
-            let updatedData = [...tableData];
-
-            if (formData.CustomerImage) {
-                const reader = new FileReader();
-                reader.onloadend = () => {
-                    updatedData = updatedData.map((item) =>
-                        item.id === editId
-                            ? { ...item, name: formData.name, description: formData.description, image: reader.result }
-                            : item
-                    );
-                    setTableData(updatedData);
-                    localStorage.setItem("testimonialData", JSON.stringify(updatedData));
-
-                    Swal.fire({
-                        icon: "success",
-                        title: "Updated!",
-                        text: "Testimonial updated successfully.",
-                        timer: 2000,
-                        showConfirmButton: false,
-                    });
-                };
-                reader.readAsDataURL(formData.CustomerImage);
-            } else {
-                updatedData = updatedData.map((item) =>
-                    item.id === editId ? { ...item, name: formData.name, description: formData.description } : item
-                );
-                setTableData(updatedData);
-                localStorage.setItem("testimonialData", JSON.stringify(updatedData));
-
-                Swal.fire({
-                    icon: "success",
-                    title: "Updated!",
-                    text: "Testimonial updated successfully.",
-                    timer: 2000,
-                    showConfirmButton: false,
-                });
-            }
-
-            setIsEditing(false);
-            setEditId(null);
-        } else {
-            // ADD FUNCTIONALITY
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                const newData = {
-                    id: Date.now(),
-                    name: formData.name,
-                    description: formData.description,
-                    image: reader.result, // base64 image
-                };
-
-                const updatedData = [...tableData, newData];
-                setTableData(updatedData);
-                localStorage.setItem("testimonialData", JSON.stringify(updatedData));
-
-                Swal.fire({
-                    icon: "success",
-                    title: "Added!",
-                    text: "Testimonial added successfully.",
-                    timer: 2000,
-                    showConfirmButton: false,
-                });
-            };
-            reader.readAsDataURL(formData.CustomerImage);
+        const form = new FormData();
+        form.append("testimonialname", formData.testimonialname);
+        form.append("testimonialpera", formData.testimonialpera);
+        if (formData.testimonialimage) {
+            form.append("testimonialimage", formData.testimonialimage);
         }
 
-        // reset form
-        setFormData({ name: "", description: "", CustomerImage: null });
-        if (fileInputRef.current) fileInputRef.current.value = "";
+        try {
+            if (isEditing) {
+                await axios.put(`${API_URL}/${editId}`, form, {
+                    headers: { "Content-Type": "multipart/form-data" },
+                });
+                Swal.fire({ icon: "success", title: "Updated!", text: "Testimonial updated successfully.", timer: 2000, showConfirmButton: false });
+            } else {
+                await axios.post(API_URL, form, {
+                    headers: { "Content-Type": "multipart/form-data" },
+                });
+                Swal.fire({ icon: "success", title: "Added!", text: "Testimonial added successfully.", timer: 2000, showConfirmButton: false });
+            }
+
+            setFormData({ testimonialname: "", testimonialpera: "", testimonialimage: null });
+            if (fileInputRef.current) fileInputRef.current.value = "";
+            setIsEditing(false);
+            setEditId(null);
+            fetchTestimonials();
+        } catch (error) {
+            console.error(error);
+            Swal.fire({ icon: "error", title: "Error!", text: "Something went wrong." });
+        }
     };
 
-    // delete testimonial
     const handleDelete = (id) => {
         Swal.fire({
             title: "Are you sure?",
@@ -131,32 +99,28 @@ function Testimonial() {
             confirmButtonColor: "#d33",
             cancelButtonColor: "#3085d6",
             confirmButtonText: "Yes, delete it!",
-        }).then((result) => {
+        }).then(async (result) => {
             if (result.isConfirmed) {
-                const updatedData = tableData.filter((item) => item.id !== id);
-                setTableData(updatedData);
-                localStorage.setItem("testimonialData", JSON.stringify(updatedData));
-
-                Swal.fire({
-                    icon: "success",
-                    title: "Deleted!",
-                    text: "Testimonial has been deleted.",
-                    timer: 2000,
-                    showConfirmButton: false,
-                });
+                try {
+                    await axios.delete(`${API_URL}/${id}`);
+                    Swal.fire({ icon: "success", title: "Deleted!", text: "Testimonial has been deleted.", timer: 2000, showConfirmButton: false });
+                    fetchTestimonials();
+                } catch (error) {
+                    console.error(error);
+                    Swal.fire({ icon: "error", title: "Error!", text: "Could not delete testimonial." });
+                }
             }
         });
     };
 
-    // edit testimonial
     const handleEdit = (item) => {
         setFormData({
-            name: item.name,
-            description: item.description,
-            CustomerImage: null,
+            testimonialname: item.testimonialname,
+            testimonialpera: item.testimonialpera,
+            testimonialimage: null,
         });
         setIsEditing(true);
-        setEditId(item.id);
+        setEditId(item._id);
         if (fileInputRef.current) fileInputRef.current.value = "";
     };
 
@@ -175,35 +139,16 @@ function Testimonial() {
                         <div className="d-lg-flex d-md-flex gap-3">
                             <div className="w-100 w-lg-50 w-md-50 mt-2">
                                 <label className="d-block fw-bold">Name</label>
-                                <input
-                                    type="text"
-                                    name="name"
-                                    value={formData.name}
-                                    onChange={handleChange}
-                                    className="mt-1 w-100 form-control border border-secondary"
-                                    placeholder="Enter Name"
-                                />
+                                <input type="text" name="testimonialname" value={formData.testimonialname} onChange={handleChange} className="mt-1 w-100 form-control border border-secondary" placeholder="Enter Name" />
                             </div>
                             <div className="w-100 w-lg-50 w-md-50 mt-2">
                                 <label className="d-block fw-bold">Image</label>
-                                <input
-                                    type="file"
-                                    name="CustomerImage"
-                                    ref={fileInputRef}
-                                    onChange={handleChange}
-                                    className="mt-1 w-100 form-control border border-secondary"
-                                />
+                                <input type="file" name="testimonialimage" ref={fileInputRef} onChange={handleChange} className="mt-1 w-100 form-control border border-secondary" />
                             </div>
                         </div>
                         <div className="w-100 w-lg-50 w-md-50 mt-2">
                             <label className="d-block fw-bold">Review</label>
-                            <textarea
-                                name="description"
-                                value={formData.description}
-                                onChange={handleChange}
-                                className="mt-1 w-100 form-control border border-secondary"
-                                placeholder="Enter Review (Max 25 words)"
-                            ></textarea>
+                            <textarea name="testimonialpera" value={formData.testimonialpera} onChange={handleChange} className="mt-1 w-100 form-control border border-secondary" placeholder="Enter Review (Max 25 words)"></textarea>
                         </div>
                         <div className="mt-3 text-center">
                             <button type="submit" className="px-4 py-1 fw-bold text-uppercase rounded-3 adminbtn shadow">
@@ -235,16 +180,16 @@ function Testimonial() {
                         <tbody className="pera">
                             {tableData.length > 0 ? (
                                 tableData.map((item, index) => (
-                                    <tr key={item.id}>
+                                    <tr key={item._id}>
                                         <td style={{ width: "10%" }}>{index + 1}</td>
                                         <td style={{ width: "10%" }}>
-                                            <img src={item.image} alt={item.name} style={{ width: "40px", height: "40px", objectFit: "cover" }} />
+                                            <img src={item.testimonialimage} alt={item.testimonialname} style={{ width: "40px", height: "40px", objectFit: "cover" }} />
                                         </td>
-                                        <td style={{ width: "20%" }}>{item.name}</td>
-                                        <td style={{ width: "50%" }}>{item.description}</td>
+                                        <td style={{ width: "20%" }}>{item.testimonialname}</td>
+                                        <td style={{ width: "50%" }}>{item.testimonialpera}</td>
                                         <td style={{ width: "10%" }}>
                                             <FaEdit onClick={() => handleEdit(item)} className="text-warning fs-5" style={{ cursor: "pointer" }} />
-                                            <FaTrash onClick={() => handleDelete(item.id)} className="text-danger fs-5 ms-0 ms-md-2" style={{ cursor: "pointer" }} />
+                                            <FaTrash onClick={() => handleDelete(item._id)} className="text-danger fs-5 ms-0 ms-md-2" style={{ cursor: "pointer" }} />
                                         </td>
                                     </tr>
                                 ))
@@ -261,4 +206,4 @@ function Testimonial() {
     );
 }
 
-export default Testimonial
+export default Testimonial;

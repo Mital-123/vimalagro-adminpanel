@@ -1,9 +1,10 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import "../../assets/Css/Product.css";
+import MainProducts from "./MainProducts";
 
 function ProductAdminToggle() {
-    
+
     const [isVisible, setIsVisible] = useState(true);
 
     useEffect(() => {
@@ -49,6 +50,8 @@ function ProductAdminToggle() {
                     "View More" button for product details.
                 </div>
             </div>
+
+            <MainProducts />
         </>
     );
 }
