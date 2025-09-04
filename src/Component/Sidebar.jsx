@@ -102,6 +102,26 @@ function Sidebar() {
                             <span className="sidebar_menu fw-medium">Product Data</span>
                         </Link>
                     </Nav.Item>
+                    <Nav.Item className='mb-2'>
+                        <Link
+                            to="/vimalaboutus"
+                            className="text-decoration-none nav-item text-white"
+                            onClick={handleLinkClick}
+                        >
+                            <MdOutlineDoubleArrow className="me-1" />
+                            <span className="sidebar_menu fw-medium">vimal About Us </span>
+                        </Link>
+                    </Nav.Item>
+                    <Nav.Item className='mb-2'>
+                        <Link
+                            to="/leaderlogo"
+                            className="text-decoration-none nav-item text-white"
+                            onClick={handleLinkClick}
+                        >
+                            <MdOutlineDoubleArrow className="me-1" />
+                            <span className="sidebar_menu fw-medium">Leader logos </span>
+                        </Link>
+                    </Nav.Item>
                 </Nav>
                 <div className="logout-btn">
                     <ButtonComponent btn="Log Out" onClick={logout} />
@@ -194,6 +214,26 @@ function Sidebar() {
                             >
                                 <MdOutlineDoubleArrow className="me-1" />
                                 <span className="sidebar_menu fw-medium">Product Data</span>
+                            </Link>
+                        </Nav.Item>
+                        <Nav.Item className='mb-2'>
+                            <Link
+                                to="/vimalaboutus"
+                                className="text-decoration-none nav-item text-white"
+                                onClick={handleLinkClick}
+                            >
+                                <MdOutlineDoubleArrow className="me-1" />
+                                <span className="sidebar_menu fw-medium">Vimal About Us</span>
+                            </Link>
+                        </Nav.Item>
+                        <Nav.Item className='mb-2'>
+                            <Link
+                                to="/leaderlogo"
+                                className="text-decoration-none nav-item text-white"
+                                onClick={handleLinkClick}
+                            >
+                                <MdOutlineDoubleArrow className="me-1" />
+                                <span className="sidebar_menu fw-medium">Leader logos</span>
                             </Link>
                         </Nav.Item>
                     </Nav>

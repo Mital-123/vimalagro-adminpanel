@@ -11,6 +11,8 @@ import Faq from './Pages/AboutPage/Faq';
 import ProductAdminToggle from './Pages/ProductPage/ProductAdminToggle';
 import MainProductData from './Pages/ProductPage/MainProductData';
 import HomeAbout from './Pages/HomePage/HomeAbout';
+import Vimalaboutus from './Pages/AboutPage/Vimalaboutus';
+import Leaderlog from './Pages/AboutPage/Leaderlog';
 
 function App() {
 
@@ -38,6 +40,8 @@ function App() {
                     <Route path='/faq' element={<Faq />} />
                     <Route path='/productAdminToggle' element={<ProductAdminToggle />} />
                     <Route path='/ProductData' element={<MainProductData />} />
+                    <Route path='/vimalaboutus' element={<Vimalaboutus />} />
+                    <Route path='/leaderlogo' element={<Leaderlog />} />
                   </Routes>
                 </div>
               </>
