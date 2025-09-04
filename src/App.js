@@ -13,6 +13,7 @@ import MainProductData from './Pages/ProductPage/MainProductData';
 import HomeAbout from './Pages/HomePage/HomeAbout';
 import Vimalaboutus from './Pages/AboutPage/Vimalaboutus';
 import Leaderlog from './Pages/AboutPage/Leaderlog';
+import Ourstory from './Pages/AboutPage/Ourstory';
 
 function App() {
 
@@ -42,6 +43,7 @@ function App() {
                     <Route path='/ProductData' element={<MainProductData />} />
                     <Route path='/vimalaboutus' element={<Vimalaboutus />} />
                     <Route path='/leaderlogo' element={<Leaderlog />} />
+                    <Route path='/ourstory' element={<Ourstory />} />
                   </Routes>
                 </div>
               </>

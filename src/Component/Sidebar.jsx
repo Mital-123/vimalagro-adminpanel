@@ -122,6 +122,16 @@ function Sidebar() {
                             <span className="sidebar_menu fw-medium">Leader logos </span>
                         </Link>
                     </Nav.Item>
+                    <Nav.Item className='mb-2'>
+                        <Link
+                            to="/ourstory"
+                            className="text-decoration-none nav-item text-white"
+                            onClick={handleLinkClick}
+                        >
+                            <MdOutlineDoubleArrow className="me-1" />
+                            <span className="sidebar_menu fw-medium">Our Story </span>
+                        </Link>
+                    </Nav.Item>
                 </Nav>
                 <div className="logout-btn">
                     <ButtonComponent btn="Log Out" onClick={logout} />
@@ -236,6 +246,16 @@ function Sidebar() {
                                 <span className="sidebar_menu fw-medium">Leader logos</span>
                             </Link>
                         </Nav.Item>
+                        <Nav.Item className='mb-2'>
+                        <Link
+                            to="/ourstory"
+                            className="text-decoration-none nav-item text-white"
+                            onClick={handleLinkClick}
+                        >
+                            <MdOutlineDoubleArrow className="me-1" />
+                            <span className="sidebar_menu fw-medium">Our Story </span>
+                        </Link>
+                    </Nav.Item>
                     </Nav>
                 </Offcanvas.Body>
             </Offcanvas>
