@@ -177,7 +177,7 @@ function Vimalaboutus() {
                         <h6 className="fw-bold m-0 text-dark">
                             {editingId ? (
                                 <>
-                                    <FaEdit className="me-2" /> Update About Us Image
+                                    <FaPlus className="me-2" /> Edit About Us Image
                                 </>
                             ) : (
                                 <>
