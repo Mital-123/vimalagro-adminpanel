@@ -4,6 +4,7 @@ import Swal from "sweetalert2";
 import axios from "axios";
 
 function Testimonial() {
+
   const [formData, setFormData] = useState({
     testimonialname: "",
     testimonialpera: "",
@@ -11,6 +12,7 @@ function Testimonial() {
   });
   const [tableData, setTableData] = useState([]);
   const [isEditing, setIsEditing] = useState(false);
+  const [fetching, setFetching] = useState(true);
   const [editId, setEditId] = useState(null);
   const fileInputRef = useRef(null);
 
@@ -18,11 +20,14 @@ function Testimonial() {
 
   // Fetch testimonials from API
   const fetchTestimonials = async () => {
+    setFetching(true);
     try {
       const response = await axios.get(API_URL);
       setTableData(response.data);
     } catch (error) {
       console.error("Error fetching testimonials:", error);
+    } finally {
+      setFetching(false);
     }
   };
 
@@ -145,8 +150,8 @@ function Testimonial() {
               </div>
             </div>
             <div className="w-100 w-lg-50 w-md-50 mt-2">
-              <label className="d-block fw-bold">Review</label>
-              <textarea name="testimonialpera" value={formData.testimonialpera} onChange={handleChange} className="mt-1 w-100 form-control border border-secondary" placeholder="Enter Review (Max 25 words)"></textarea>
+              <label className="d-block fw-bold">Review (Max 25 Words)</label>
+              <textarea name="testimonialpera" value={formData.testimonialpera} onChange={handleChange} className="mt-1 w-100 form-control border border-secondary" placeholder="Enter Review"></textarea>
             </div>
             <div className="mt-3 text-center">
               <button type="submit" className="px-4 py-1 fw-bold text-uppercase rounded-3 adminbtn shadow">
@@ -165,43 +170,53 @@ function Testimonial() {
           </h6>
         </div>
         <div className="bg-white p-4 table-responsive">
-          <table className="table table-bordered border-secondary custom-table table-hover text-center">
-            <thead style={{ fontSize: "15px" }}>
-              <tr>
-                <th className="text-white" style={{ width: "10%", background: "var(--red)" }}>Sr. No.</th>
-                <th className="text-white" style={{ width: "10%", background: "var(--red)" }}>Image</th>
-                <th className="text-white" style={{ width: "20%", background: "var(--red)" }}>Name</th>
-                <th className="text-white" style={{ width: "50%", background: "var(--red)" }}>Description</th>
-                <th className="text-white" style={{ width: "10%", background: "var(--red)" }}>Action</th>
-              </tr>
-            </thead>
-            <tbody className="pera">
-              {tableData.length > 0 ? (
-                tableData.map((item, index) => (
-                  <tr key={item._id}>
-                    <td style={{ width: "10%" }}>{index + 1}</td>
-                    <td style={{ width: "10%" }}>
-                      <img src={item.testimonialimage} alt={item.testimonialname} style={{ width: "40px", height: "40px", objectFit: "cover" }} />
-                    </td>
-                    <td style={{ width: "20%" }}>{item.testimonialname}</td>
-                    <td style={{ width: "50%" }}>{item.testimonialpera}</td>
-                    <td style={{ width: "10%" }}>
-                      <FaEdit onClick={() => handleEdit(item)} className="text-warning fs-5" style={{ cursor: "pointer" }} />
-                      <FaTrash onClick={() => handleDelete(item._id)} className="text-danger fs-5 ms-0 ms-md-2" style={{ cursor: "pointer" }} />
-                    </td>
-                  </tr>
-                ))
-              ) : (
+          {fetching ? (
+            <div className="text-center">
+              <div role="status">
+                <img src={require("../../assets/Images/loader.gif")} className="img-fluid" alt="" />
+              </div>
+            </div>
+          ) : (
+            <table className="table table-bordered border-secondary custom-table table-hover text-center">
+              <thead style={{ fontSize: "15px" }}>
                 <tr>
-                  <td colSpan="5" className="text-center text-muted">No Testimonial Data Found.</td>
+                  <th className="text-white" style={{ width: "10%", background: "var(--red)" }}>Sr. No.</th>
+                  <th className="text-white" style={{ width: "10%", background: "var(--red)" }}>Image</th>
+                  <th className="text-white" style={{ width: "20%", background: "var(--red)" }}>Name</th>
+                  <th className="text-white" style={{ width: "50%", background: "var(--red)" }}>Description</th>
+                  <th className="text-white" style={{ width: "10%", background: "var(--red)" }}>Action</th>
                 </tr>
-              )}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="pera">
+                {tableData.length > 0 ? (
+                  tableData.map((item, index) => (
+                    <tr key={item._id}>
+                      <td style={{ width: "10%" }}>{index + 1}</td>
+                      <td style={{ width: "10%" }}>
+                        <img src={item.testimonialimage} alt={item.testimonialname} style={{ width: "40px", height: "40px", objectFit: "cover" }} />
+                      </td>
+                      <td style={{ width: "20%" }}>{item.testimonialname}</td>
+                      <td style={{ width: "50%" }}>{item.testimonialpera}</td>
+                      <td style={{ width: "10%" }}>
+                        <div className="d-flex flex-column flex-md-row flex-lg-row justify-content-center align-items-center">
+                          <FaEdit onClick={() => handleEdit(item)} className="text-warning fs-5 me-0 me-md-2 mb-2 mb-md-0" style={{ cursor: "pointer" }} />
+                          <FaTrash onClick={() => handleDelete(item._id)} className="text-danger fs-5" style={{ cursor: "pointer" }} />
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="5" className="text-center text-muted">No Testimonial Data Found.</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          )}
         </div>
       </div>
     </div>
   );
 }
 
-export default Testimonial;
+export default Testimonial

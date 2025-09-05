@@ -13,8 +13,10 @@ function Counter() {
     const [tableData, setTableData] = useState([]);
     const [isEditMode, setIsEditMode] = useState(false);
     const [editId, setEditId] = useState(null);
+    const [fetching, setFetching] = useState(true);
 
     useEffect(() => {
+        setFetching(true);
         fetch("https://backendvimalagro.onrender.com/counter")
             .then((res) => res.json())
             .then((data) => {
@@ -25,7 +27,10 @@ function Counter() {
                     setTableData(allValues);
                 }
             })
-            .catch((err) => console.error("Fetch error:", err));
+            .catch((err) => console.error("Fetch error:", err))
+            .finally(() => {
+                setFetching(false);
+            });
     }, []);
 
     const handleChange = (e) => {
@@ -85,7 +90,7 @@ function Counter() {
             products: row.products,
             countries: row.countries,
         });
-        setEditId(row.parentId); 
+        setEditId(row.parentId);
         setIsEditMode(true);
         window.scrollTo({ top: 0, behavior: "smooth" });
     };
@@ -219,36 +224,44 @@ function Counter() {
                     </h6>
                 </div>
                 <div className='bg-white p-4 table-responsive'>
-                    <table className='table table-bordered border-secondary custom-table table-hover text-center'>
-                        <thead style={{ fontSize: "15px" }}>
-                            <tr>
-                                <th className='text-white' style={{ background: "var(--red)" }}>Happy Customers</th>
-                                <th className='text-white' style={{ background: "var(--red)" }}>Popular Products</th>
-                                <th className='text-white' style={{ background: "var(--red)" }}>More Countries</th>
-                                <th className='text-white' style={{ background: "var(--red)" }}>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody className='pera'>
-                            {tableData.length > 0 ? (
-                                tableData.map((row, idx) => (
-                                    <tr key={idx}>
-                                        <td>{row.customers}</td>
-                                        <td>{row.products}</td>
-                                        <td>{row.countries}</td>
-                                        <td>
-                                            <FaEdit onClick={() => handleEdit(row)} className='text-danger fs-5' />
+                    {fetching ? (
+                        <div className="text-center">
+                            <div role="status">
+                                <img src={require("../../assets/Images/loader.gif")} className="img-fluid" alt="" />
+                            </div>
+                        </div>
+                    ) : (
+                        <table className='table table-bordered border-secondary custom-table table-hover text-center'>
+                            <thead style={{ fontSize: "15px" }}>
+                                <tr>
+                                    <th className='text-white' style={{ background: "var(--red)" }}>Happy Customers</th>
+                                    <th className='text-white' style={{ background: "var(--red)" }}>Popular Products</th>
+                                    <th className='text-white' style={{ background: "var(--red)" }}>More Countries</th>
+                                    <th className='text-white' style={{ background: "var(--red)" }}>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody className='pera'>
+                                {tableData.length > 0 ? (
+                                    tableData.map((row, idx) => (
+                                        <tr key={idx}>
+                                            <td>{row.customers}</td>
+                                            <td>{row.products}</td>
+                                            <td>{row.countries}</td>
+                                            <td>
+                                                <FaEdit onClick={() => handleEdit(row)} className='text-danger fs-5' />
+                                            </td>
+                                        </tr>
+                                    ))
+                                ) : (
+                                    <tr>
+                                        <td colSpan="4" className="text-center text-muted">
+                                            No Counter Data Found.
                                         </td>
                                     </tr>
-                                ))
-                            ) : (
-                                <tr>
-                                    <td colSpan="4" className="text-center text-muted">
-                                        No Counter Data Found.
-                                    </td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
+                                )}
+                            </tbody>
+                        </table>
+                    )}
                 </div>
             </div>
         </div>

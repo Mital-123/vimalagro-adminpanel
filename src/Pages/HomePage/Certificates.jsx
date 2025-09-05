@@ -6,8 +6,10 @@ import axios from "axios";
 const API_URL = "https://backendvimalagro.onrender.com/certificate";
 
 function Certificates() {
+
     const [certificateImage, setCertificateImage] = useState(null);
     const [tableData, setTableData] = useState([]);
+    const [fetching, setFetching] = useState(true);
     const fileInputRef = useRef(null);
 
     // Fetch Certificates (GET)
@@ -16,6 +18,7 @@ function Certificates() {
     }, []);
 
     const fetchCertificates = async () => {
+        setFetching(true);
         try {
             const res = await axios.get(API_URL);
             // sort by createdAt ascending (oldest first, newest last)
@@ -23,6 +26,8 @@ function Certificates() {
             setTableData(sorted);
         } catch (error) {
             console.error("Error fetching certificates:", error);
+        } finally {
+            setFetching(false);
         }
     };
 
@@ -151,55 +156,62 @@ function Certificates() {
                     </h6>
                 </div>
                 <div className="bg-white p-4 table-responsive">
-                    <table className="table table-bordered border-secondary custom-table table-hover text-center">
-                        <thead style={{ fontSize: "15px" }}>
-                            <tr>
-                                <th className="text-white" style={{ background: "var(--red)" }}>
-                                    Certificate Image
-                                </th>
-                                <th className="text-white" style={{ background: "var(--red)" }}>
-                                    Action
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody className="pera">
-                            {tableData.length > 0 ? (
-                                tableData.map((item) => (
-                                    <tr key={item._id}>
-                                        <td>
-                                            <img
-                                                src={item.certificateimage}   // ✅ fix here
-                                                alt="certificate"
-                                                style={{
-                                                    width: "60px",
-                                                    height: "60px",
-                                                    objectFit: "cover",
-                                                }}
-                                            />
-                                        </td>
-                                        <td>
-                                            <FaTrash
-                                                className="text-danger fs-5"
-                                                style={{ cursor: "pointer" }}
-                                                onClick={() => handleDelete(item._id)}
-                                            />
+                    {fetching ? (
+                        <div className="text-center">
+                            <div role="status">
+                                <img src={require("../../assets/Images/loader.gif")} className="img-fluid" alt="" />
+                            </div>
+                        </div>
+                    ) : (
+                        <table className="table table-bordered border-secondary custom-table table-hover text-center">
+                            <thead style={{ fontSize: "15px" }}>
+                                <tr>
+                                    <th className="text-white" style={{ background: "var(--red)" }}>
+                                        Certificate Image
+                                    </th>
+                                    <th className="text-white" style={{ background: "var(--red)" }}>
+                                        Action
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody className="pera">
+                                {tableData.length > 0 ? (
+                                    tableData.map((item) => (
+                                        <tr key={item._id}>
+                                            <td>
+                                                <img
+                                                    src={item.certificateimage}
+                                                    alt="certificate"
+                                                    style={{
+                                                        width: "60px",
+                                                        height: "60px",
+                                                        objectFit: "contain",
+                                                    }}
+                                                />
+                                            </td>
+                                            <td>
+                                                <FaTrash
+                                                    className="text-danger fs-5"
+                                                    style={{ cursor: "pointer" }}
+                                                    onClick={() => handleDelete(item._id)}
+                                                />
+                                            </td>
+                                        </tr>
+                                    ))
+                                ) : (
+                                    <tr>
+                                        <td colSpan="2" className="text-center text-muted">
+                                            No Certificates.
                                         </td>
                                     </tr>
-                                ))
-                            ) : (
-                                <tr>
-                                    <td colSpan="2" className="text-center text-muted">
-                                        No Certificates.
-                                    </td>
-                                </tr>
-                            )}
-                        </tbody>
-
-                    </table>
+                                )}
+                            </tbody>
+                        </table>
+                    )}
                 </div>
             </div>
         </div>
     );
 }
 
-export default Certificates;
+export default Certificates
