@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Nav, Offcanvas } from 'react-bootstrap';
 import { TiThMenu } from 'react-icons/ti';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import ButtonComponent from '../ButtonCom';
 import { MdOutlineDoubleArrow } from 'react-icons/md';
 import { IoIosArrowDropdownCircle } from 'react-icons/io';
@@ -9,6 +9,7 @@ import { IoIosArrowDropdownCircle } from 'react-icons/io';
 function Sidebar() {
 
     const location = useLocation();
+    const navigate = useNavigate();
 
     const [showSidebar, setShowSidebar] = useState(false);
     const [showHomeMenu, setShowHomeMenu] = useState(false);
@@ -91,6 +92,7 @@ function Sidebar() {
 
     const logout = () => {
         localStorage.removeItem("login");
+        navigate('/');
         window.location.reload();
     };
 
