@@ -14,6 +14,11 @@ import HomeAbout from './Pages/HomePage/HomeAbout';
 import Vimalaboutus from './Pages/AboutPage/Vimalaboutus';
 import Leaderlog from './Pages/AboutPage/Leaderlog';
 import Ourstory from './Pages/AboutPage/Ourstory';
+import HomeBanner from './Pages/HomePage/HomeBanner';
+import AboutBanner from './Pages/AboutPage/AboutBanner';
+import ProductBanner from './Pages/ProductPage/ProductBanner';
+import BlogBanner from './Pages/BlogPage/BlogBanner';
+import ContactBanner from './Pages/ContactPage/ContactBanner';
 
 function App() {
 
@@ -33,8 +38,9 @@ function App() {
                 <Sidebar />
                 <div className="main-content p-2 p-lg-4 mt-5 mt-lg-0 mt-md-0 flex-grow-1">
                   <Routes>
-                    <Route path='/' element={<HomeAbout setlogin={setlogin} />} />
-                    <Route path='/about' element={<HomeAbout setlogin={setlogin} />} />
+                    <Route path='/' element={<HomeBanner setlogin={setlogin} />} />
+                    <Route path='/homebanner' element={<HomeBanner setlogin={setlogin} />} />
+                    <Route path='/about' element={<HomeAbout />} />
                     <Route path='/counter' element={<Counter />} />
                     <Route path='/testimonial' element={<Testimonial />} />
                     <Route path='/certificate' element={<Certificates />} />
@@ -44,6 +50,10 @@ function App() {
                     <Route path='/vimalaboutus' element={<Vimalaboutus />} />
                     <Route path='/leaderlogo' element={<Leaderlog />} />
                     <Route path='/ourstory' element={<Ourstory />} />
+                    <Route path='/aboutbanner' element={<AboutBanner />} />
+                    <Route path='/productbanner' element={<ProductBanner />} />
+                    <Route path='/blogbanner' element={<BlogBanner />} />
+                    <Route path='/contactbanner' element={<ContactBanner />} />
                   </Routes>
                 </div>
               </>

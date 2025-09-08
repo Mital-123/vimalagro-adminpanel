@@ -14,18 +14,25 @@ function Sidebar() {
     const [showHomeMenu, setShowHomeMenu] = useState(false);
     const [showAboutMenu, setShowAboutMenu] = useState(false);
     const [showProductMenu, setShowProductMenu] = useState(false);
+    const [showBlogMenu, setShowBlogMenu] = useState(false);
+    const [showContactMenu, setShowContactMenu] = useState(false);
 
     // Expand menus based on current route
     useEffect(() => {
         const path = location.pathname;
 
-        const homePaths = ['/about', '/counter', '/testimonial', '/certificate', '/']; // '/' add kari
-        const aboutPaths = ['/vimalaboutus', '/leaderlogo', '/ourstory', '/faq'];
-        const productPaths = ['/productAdminToggle', '/ProductData'];
+        const homePaths = ['/homebanner', '/about', '/counter', '/testimonial', '/certificate', '/']; // '/' add kari
+        const aboutPaths = ['/aboutbanner', '/vimalaboutus', '/leaderlogo', '/ourstory', '/faq'];
+        const productPaths = ['/productbanner', '/productAdminToggle', '/ProductData'];
+        const blogPaths = ['/blogbanner'];
+        const contactPaths = ['/contactbanner'];
 
         setShowHomeMenu(homePaths.includes(path));
         setShowAboutMenu(aboutPaths.includes(path));
         setShowProductMenu(productPaths.includes(path));
+        setShowBlogMenu(blogPaths.includes(path));
+        setShowContactMenu(contactPaths.includes(path));
+
     }, [location.pathname]);
 
     const handleHomeClick = () => {
@@ -33,6 +40,8 @@ function Sidebar() {
         if (!showHomeMenu) {
             setShowAboutMenu(false);
             setShowProductMenu(false);
+            setShowBlogMenu(false);
+            setShowContactMenu(false);
         }
     };
 
@@ -41,6 +50,8 @@ function Sidebar() {
         if (!showAboutMenu) {
             setShowHomeMenu(false);
             setShowProductMenu(false);
+            setShowBlogMenu(false);
+            setShowContactMenu(false);
         }
     };
 
@@ -49,6 +60,28 @@ function Sidebar() {
         if (!showProductMenu) {
             setShowHomeMenu(false);
             setShowAboutMenu(false);
+            setShowBlogMenu(false);
+            setShowContactMenu(false);
+        }
+    };
+
+    const handleBlogClick = () => {
+        setShowBlogMenu(prev => !prev);
+        if (!showBlogMenu) {
+            setShowHomeMenu(false);
+            setShowAboutMenu(false);
+            setShowProductMenu(false);
+            setShowContactMenu(false);
+        }
+    };
+
+    const handleContactClick = () => {
+        setShowContactMenu(prev => !prev);
+        if (!showContactMenu) {
+            setShowHomeMenu(false);
+            setShowAboutMenu(false);
+            setShowProductMenu(false);
+            setShowBlogMenu(false);
         }
     };
 
@@ -63,9 +96,8 @@ function Sidebar() {
 
     // Helper to check if submenu item is active
     const isActive = (path) => {
-        // If path is '/about', treat '/' also as active
-        if (path === '/about') {
-            return location.pathname === '/about' || location.pathname === '/';
+        if (path === '/homebanner') {
+            return location.pathname === '/homebanner' || location.pathname === '/';
         }
         return location.pathname === path;
     };
@@ -93,6 +125,12 @@ function Sidebar() {
                         {showHomeMenu && (
                             <Nav className="flex-column bg-white ps-2 rounded-3">
                                 <Nav.Item className="mb-2 mt-2">
+                                    <Link to="/homebanner" className={`text-decoration-none nav-item ${isActive('/homebanner') ? 'active' : ''}`} style={{ color: "var(--red)" }} onClick={handleLinkClick}>
+                                        <MdOutlineDoubleArrow className="me-1" />
+                                        <span className="sidebar_menu fw-medium">Home Banner</span>
+                                    </Link>
+                                </Nav.Item>
+                                <Nav.Item className="mb-2">
                                     <Link to="/about" className={`text-decoration-none nav-item ${isActive('/about') ? 'active' : ''}`} style={{ color: "var(--red)" }} onClick={handleLinkClick}>
                                         <MdOutlineDoubleArrow className="me-1" />
                                         <span className="sidebar_menu fw-medium">About Us</span>
@@ -129,6 +167,12 @@ function Sidebar() {
                         {showAboutMenu && (
                             <Nav className="flex-column bg-white ps-2 rounded-3">
                                 <Nav.Item className='mb-2 mt-2'>
+                                    <Link to="/aboutbanner" className={`text-decoration-none nav-item ${isActive('/aboutbanner') ? 'active' : ''}`} style={{ color: "var(--red)" }} onClick={handleLinkClick}>
+                                        <MdOutlineDoubleArrow className="me-1" />
+                                        <span className="sidebar_menu fw-medium">About Us Banner</span>
+                                    </Link>
+                                </Nav.Item>
+                                <Nav.Item className='mb-2'>
                                     <Link to="/vimalaboutus" className={`text-decoration-none nav-item ${isActive('/vimalaboutus') ? 'active' : ''}`} style={{ color: "var(--red)" }} onClick={handleLinkClick}>
                                         <MdOutlineDoubleArrow className="me-1" />
                                         <span className="sidebar_menu fw-medium">Vimal About Us</span>
@@ -165,6 +209,12 @@ function Sidebar() {
                         {showProductMenu && (
                             <Nav className="flex-column bg-white ps-2 rounded-3">
                                 <Nav.Item className='mb-2 mt-2'>
+                                    <Link to="/productbanner" className={`text-decoration-none nav-item ${isActive('/productbanner') ? 'active' : ''}`} style={{ color: "var(--red)" }} onClick={handleLinkClick}>
+                                        <MdOutlineDoubleArrow className="me-1" />
+                                        <span className="sidebar_menu fw-medium">Product Banner</span>
+                                    </Link>
+                                </Nav.Item>
+                                <Nav.Item className='mb-2'>
                                     <Link to="/productAdminToggle" className={`text-decoration-none nav-item ${isActive('/productAdminToggle') ? 'active' : ''}`} style={{ color: "var(--red)" }} onClick={handleLinkClick}>
                                         <MdOutlineDoubleArrow className="me-1" />
                                         <span className="sidebar_menu fw-medium">Add Product</span>
@@ -174,6 +224,40 @@ function Sidebar() {
                                     <Link to="/ProductData" className={`text-decoration-none nav-item ${isActive('/ProductData') ? 'active' : ''}`} style={{ color: "var(--red)" }} onClick={handleLinkClick}>
                                         <MdOutlineDoubleArrow className="me-1" />
                                         <span className="sidebar_menu fw-medium">Product Data</span>
+                                    </Link>
+                                </Nav.Item>
+                            </Nav>
+                        )}
+                    </div>
+
+                    <div className="text-white">
+                        <div className="mt-2 mb-1 d-flex align-items-center fw-medium" style={{ cursor: 'pointer' }} onClick={handleBlogClick}>
+                            Blog
+                            <span className="ms-auto"><IoIosArrowDropdownCircle /></span>
+                        </div>
+                        {showBlogMenu && (
+                            <Nav className="flex-column bg-white ps-2 rounded-3">
+                                <Nav.Item className="mb-2 mt-2">
+                                    <Link to="/blogbanner" className={`text-decoration-none nav-item ${isActive('/blogbanner') ? 'active' : ''}`} style={{ color: "var(--red)" }} onClick={handleLinkClick}>
+                                        <MdOutlineDoubleArrow className="me-1" />
+                                        <span className="sidebar_menu fw-medium">Blog Banner</span>
+                                    </Link>
+                                </Nav.Item>
+                            </Nav>
+                        )}
+                    </div>
+
+                    <div className="text-white">
+                        <div className="mt-2 mb-1 d-flex align-items-center fw-medium" style={{ cursor: 'pointer' }} onClick={handleContactClick}>
+                            Contact Us
+                            <span className="ms-auto"><IoIosArrowDropdownCircle /></span>
+                        </div>
+                        {showContactMenu && (
+                            <Nav className="flex-column bg-white ps-2 rounded-3">
+                                <Nav.Item className="mb-2 mt-2">
+                                    <Link to="/contactbanner" className={`text-decoration-none nav-item ${isActive('/contactbanner') ? 'active' : ''}`} style={{ color: "var(--red)" }} onClick={handleLinkClick}>
+                                        <MdOutlineDoubleArrow className="me-1" />
+                                        <span className="sidebar_menu fw-medium">Contact Us Banner</span>
                                     </Link>
                                 </Nav.Item>
                             </Nav>
@@ -209,6 +293,12 @@ function Sidebar() {
                             {showHomeMenu && (
                                 <Nav className="flex-column bg-white ps-2 rounded-3">
                                     <Nav.Item className="mb-2 mt-2">
+                                        <Link to="/homebanner" className={`text-decoration-none nav-item ${isActive('/homebanner') ? 'active' : ''}`} style={{ color: "var(--red)" }} onClick={handleLinkClick}>
+                                            <MdOutlineDoubleArrow className="me-1" />
+                                            <span className="sidebar_menu fw-medium">Home Banner</span>
+                                        </Link>
+                                    </Nav.Item>
+                                    <Nav.Item className="mb-2">
                                         <Link to="/about" className={`text-decoration-none nav-item ${isActive('/about') ? 'active' : ''}`} style={{ color: "var(--red)" }} onClick={handleLinkClick}>
                                             <MdOutlineDoubleArrow className="me-1" />
                                             <span className="sidebar_menu fw-medium">About Us</span>
@@ -245,6 +335,12 @@ function Sidebar() {
                             {showAboutMenu && (
                                 <Nav className="flex-column bg-white ps-2 rounded-3">
                                     <Nav.Item className='mb-2 mt-2'>
+                                        <Link to="/aboutbanner" className={`text-decoration-none nav-item ${isActive('/aboutbanner') ? 'active' : ''}`} style={{ color: "var(--red)" }} onClick={handleLinkClick}>
+                                            <MdOutlineDoubleArrow className="me-1" />
+                                            <span className="sidebar_menu fw-medium">About Us Banner</span>
+                                        </Link>
+                                    </Nav.Item>
+                                    <Nav.Item className='mb-2'>
                                         <Link to="/vimalaboutus" className={`text-decoration-none nav-item ${isActive('/vimalaboutus') ? 'active' : ''}`} style={{ color: "var(--red)" }} onClick={handleLinkClick}>
                                             <MdOutlineDoubleArrow className="me-1" />
                                             <span className="sidebar_menu fw-medium">Vimal About Us</span>
@@ -281,6 +377,12 @@ function Sidebar() {
                             {showProductMenu && (
                                 <Nav className="flex-column bg-white ps-2 rounded-3">
                                     <Nav.Item className='mb-2 mt-2'>
+                                        <Link to="/productbanner" className={`text-decoration-none nav-item ${isActive('/productbanner') ? 'active' : ''}`} style={{ color: "var(--red)" }} onClick={handleLinkClick}>
+                                            <MdOutlineDoubleArrow className="me-1" />
+                                            <span className="sidebar_menu fw-medium">Product Banner</span>
+                                        </Link>
+                                    </Nav.Item>
+                                    <Nav.Item className='mb-2'>
                                         <Link to="/productAdminToggle" className={`text-decoration-none nav-item ${isActive('/productAdminToggle') ? 'active' : ''}`} style={{ color: "var(--red)" }} onClick={handleLinkClick}>
                                             <MdOutlineDoubleArrow className="me-1" />
                                             <span className="sidebar_menu fw-medium">Add Product</span>
@@ -290,6 +392,40 @@ function Sidebar() {
                                         <Link to="/ProductData" className={`text-decoration-none nav-item ${isActive('/ProductData') ? 'active' : ''}`} style={{ color: "var(--red)" }} onClick={handleLinkClick}>
                                             <MdOutlineDoubleArrow className="me-1" />
                                             <span className="sidebar_menu fw-medium">Product Data</span>
+                                        </Link>
+                                    </Nav.Item>
+                                </Nav>
+                            )}
+                        </div>
+
+                        <div className="text-white">
+                            <div className="mt-2 mb-1 d-flex align-items-center fw-medium" style={{ cursor: 'pointer' }} onClick={handleBlogClick}>
+                                Blog
+                                <span className="ms-auto"><IoIosArrowDropdownCircle /></span>
+                            </div>
+                            {showBlogMenu && (
+                                <Nav className="flex-column bg-white ps-2 rounded-3">
+                                    <Nav.Item className="mb-2 mt-2">
+                                        <Link to="/blogbanner" className={`text-decoration-none nav-item ${isActive('/blogbanner') ? 'active' : ''}`} style={{ color: "var(--red)" }} onClick={handleLinkClick}>
+                                            <MdOutlineDoubleArrow className="me-1" />
+                                            <span className="sidebar_menu fw-medium">Blog Banner</span>
+                                        </Link>
+                                    </Nav.Item>
+                                </Nav>
+                            )}
+                        </div>
+
+                        <div className="text-white">
+                            <div className="mt-2 mb-1 d-flex align-items-center fw-medium" style={{ cursor: 'pointer' }} onClick={handleContactClick}>
+                                Contact Us
+                                <span className="ms-auto"><IoIosArrowDropdownCircle /></span>
+                            </div>
+                            {showContactMenu && (
+                                <Nav className="flex-column bg-white ps-2 rounded-3">
+                                    <Nav.Item className="mb-2 mt-2">
+                                        <Link to="/contactbanner" className={`text-decoration-none nav-item ${isActive('/contactbanner') ? 'active' : ''}`} style={{ color: "var(--red)" }} onClick={handleLinkClick}>
+                                            <MdOutlineDoubleArrow className="me-1" />
+                                            <span className="sidebar_menu fw-medium">Contact Us Banner</span>
                                         </Link>
                                     </Nav.Item>
                                 </Nav>
