@@ -69,7 +69,7 @@ function ProductPage() {
     const fetchProducts = async () => {
         try {
             const res = await axios.get(
-                "http://localhost:8000/api/products"
+                "https://backendvimalagro.onrender.com/api/products"
             );
             setProducts(res.data);
         } catch (err) {
@@ -187,43 +187,8 @@ function ProductPage() {
         }
     };
 
-    // Upload image helper with loader
-    const uploadImage = async (file, loaderKey) => {
-        setLoadingImages((prev) => ({ ...prev, [loaderKey]: true }));
-        const formData = new FormData();
-        formData.append("image", file);
-        try {
-            const res = await axios.post(
-                "http://localhost:8000/api/upload/product-image",
-                formData,
-                {
-                    headers: { "Content-Type": "multipart/form-data" },
-                }
-            );
-            return res.data.url;
-        } catch (err) {
-            console.error(`${loaderKey} upload failed`, err);
-            alert(`❌ Failed to upload ${loaderKey}`);
-            return null;
-        } finally {
-            setLoadingImages((prev) => ({ ...prev, [loaderKey]: false }));
-        }
-    };
-
     // Subproduct image upload with loader and error clearing
     const handleSubFileUpload = async (e) => {
-        // const file = e.target.files[0];
-        // if (!file) return;
-        // setLoadingImages((prev) => ({ ...prev, subproductImg: true }));
-        // const url = await uploadImage(file, "subproductImg");
-        // if (url) {
-        //     setSub((prev) => ({ ...prev, subproductImg: url }));
-        //     if (subErrors.subproductImg) {
-        //         setSubErrors((prev) => ({ ...prev, subproductImg: null }));
-        //     }
-        // }
-        // setLoadingImages((prev) => ({ ...prev, subproductImg: false }));
-
         const file = e.target.files[0];
         if (file) {
             setSub((prev) => ({ ...prev, subproductImg: file }));
@@ -232,18 +197,6 @@ function ProductPage() {
 
     // Recipe image upload with loader and error clearing
     const handleRecipeFileUpload = async (e, key) => {
-        // const file = e.target.files[0];
-        // if (!file) return;
-        // setLoadingImages((prev) => ({ ...prev, [key]: true }));
-        // const url = await uploadImage(file, key);
-        // if (url) {
-        //     setRecipe((prev) => ({ ...prev, [key]: url }));
-        //     if (recipeErrors[key]) {
-        //         setRecipeErrors((prev) => ({ ...prev, [key]: null }));
-        //     }
-        // }
-        // setLoadingImages((prev) => ({ ...prev, [key]: false }));
-
         const file = e.target.files[0];
         if (file) {
             if (key === "recipeSubImg") {
@@ -432,13 +385,13 @@ function ProductPage() {
             // 🔥 send to backend
             if (editingProductId) {
                 await axios.put(
-                    `http://localhost:8000/api/products/${editingProductId}`,
+                    `https://backendvimalagro.onrender.com/api/products/${editingProductId}`,
                     formData,
                     { headers: { "Content-Type": "multipart/form-data" } }
                 );
                 alert("✅ Product Updated!");
             } else {
-                await axios.post("http://localhost:8000/api/products/add", formData, {
+                await axios.post("https://backendvimalagro.onrender.com/api/products/add", formData, {
                     headers: { "Content-Type": "multipart/form-data" },
                 });
                 alert("✅ Product Saved!");
@@ -483,7 +436,7 @@ function ProductPage() {
     const deleteProduct = async (id) => {
         if (!window.confirm("Delete this product?")) return;
         try {
-            await axios.delete(`http://localhost:8000/api/products/${id}`);
+            await axios.delete(`https://backendvimalagro.onrender.com/api/products/${id}`);
             fetchProducts();
         } catch (err) {
             console.error("Delete failed", err);
