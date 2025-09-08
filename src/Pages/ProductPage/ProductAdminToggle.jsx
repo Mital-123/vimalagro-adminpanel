@@ -1,7 +1,7 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import "../../assets/Css/Product.css";
-import MainProducts from "./MainProducts";
+import ProductPage from "./ProductPage";
 
 function ProductAdminToggle() {
 
@@ -51,7 +51,7 @@ function ProductAdminToggle() {
                 </div>
             </div>
 
-            <MainProducts />
+            <ProductPage />
         </>
     );
 }
