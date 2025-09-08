@@ -6,8 +6,10 @@ import axios from "axios";
 const API_URL = "https://backendvimalagro.onrender.com/ourstory";
 
 function Ourstory() {
+
     const [storypera, setstorypera] = useState("");
     const [tableData, setTableData] = useState([]);
+    const [fetching, setFetching] = useState(true);
     const [editId, setEditId] = useState(null);
 
     // ✅ Fetch Stories (GET)
@@ -16,6 +18,7 @@ function Ourstory() {
     }, []);
 
     const fetchStories = async () => {
+        setFetching(true);
         try {
             const res = await axios.get(API_URL);
             const sorted = res.data.data.sort(
@@ -24,6 +27,8 @@ function Ourstory() {
             setTableData(sorted);
         } catch (error) {
             console.error("Error fetching stories:", error);
+        } finally {
+            setFetching(false);
         }
     };
 
@@ -139,7 +144,7 @@ function Ourstory() {
                                 value={storypera}
                                 onChange={(e) => setstorypera(e.target.value)}
                                 className="mt-1 w-100 form-control border border-secondary"
-                                placeholder="Enter story here..."
+                                placeholder="Enter Story Here ..."
                             />
                         </div>
                         <div className="mt-3 text-center">
@@ -149,18 +154,6 @@ function Ourstory() {
                             >
                                 <span>{editId ? "Update" : "Submit"}</span>
                             </button>
-                            {editId && (
-                                <button
-                                    type="button"
-                                    className="px-4 py-1 fw-bold text-uppercase rounded-3 ms-2 btn btn-secondary"
-                                    onClick={() => {
-                                        setEditId(null);
-                                        setstorypera("");
-                                    }}
-                                >
-                                    Cancel
-                                </button>
-                            )}
                         </div>
                     </div>
                 </div>
@@ -174,55 +167,59 @@ function Ourstory() {
                 >
                     <h6 className="fw-bold m-0 text-dark">
                         <FaDatabase className="me-2" />
-                        Added Our Stories
+                        Added Our Story
                     </h6>
                 </div>
                 <div className="bg-white p-4 table-responsive">
-                    <table className="table table-bordered border-secondary custom-table table-hover text-center">
-                        <thead style={{ fontSize: "15px" }}>
-                            <tr>
-                                <th className="text-white" style={{ background: "var(--red)" }}>
-                                    Our   Story
-                                </th>
-                                <th className="text-white" style={{ background: "var(--red)" }}>
-                                    Action
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody className="pera">
-                            {tableData.length > 0 ? (
-                                tableData.map((item) => (
-                                    <tr key={item._id}>
-                                        <td>{item.storypera}</td>
-                                        <td  className="">
-                                          <div className="d-flex ">
-                                              <div className="">
-                                                <FaEdit
-                                                    className="text-warning fs-5 me-3"
-                                                    style={{ cursor: "pointer" }}
-                                                    onClick={() => handleEdit(item)}
-                                                />
-                                            </div>
-                                            <div>
-                                                <FaTrash
-                                                    className="text-danger fs-5"
-                                                    style={{ cursor: "pointer" }}
-                                                    onClick={() => handleDelete(item._id)}
-                                                />
-                                            </div>
-                                          </div>
+                    {fetching ? (
+                        <div className="text-center">
+                            <div role="status">
+                                <img src={require("../../assets/Images/loader.gif")} className="img-fluid" alt="" />
+                            </div>
+                        </div>
+                    ) : (
+                        <table className="table table-bordered border-secondary custom-table table-hover text-center">
+                            <thead style={{ fontSize: "15px" }}>
+                                <tr>
+                                    <th className="text-white" style={{ background: "var(--red)" }}>
+                                        Our Story
+                                    </th>
+                                    <th className="text-white" style={{ background: "var(--red)" }}>
+                                        Action
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody className="pera">
+                                {tableData.length > 0 ? (
+                                    tableData.map((item) => (
+                                        <tr key={item._id}>
+                                            <td>{item.storypera}</td>
+                                            <td>
+                                                <div className="d-flex flex-column flex-md-row flex-lg-row justify-content-center align-items-center">
+                                                    <FaEdit
+                                                        className="text-warning fs-5 me-0 me-md-2 mb-2 mb-md-0"
+                                                        style={{ cursor: "pointer" }}
+                                                        onClick={() => handleEdit(item)}
+                                                    />
+                                                    <FaTrash
+                                                        className="text-danger fs-5"
+                                                        style={{ cursor: "pointer" }}
+                                                        onClick={() => handleDelete(item._id)}
+                                                    />
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))
+                                ) : (
+                                    <tr>
+                                        <td colSpan="2" className="text-center text-muted">
+                                            No Our Story.
                                         </td>
                                     </tr>
-                                ))
-                            ) : (
-                                <tr>
-                                    <td colSpan="2" className="text-center text-muted">
-                                        No Our Stories.
-                                    </td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
+                                )}
+                            </tbody>
+                        </table>
+                    )}
                 </div>
             </div>
         </div>
