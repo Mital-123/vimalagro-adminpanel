@@ -362,20 +362,20 @@ function ProductPage() {
                     formData.append("productImages", file);
                 });
             }
-            product.subproducts.forEach((sub) => {
+            product.subproducts.forEach((sub, index) => {
                 if (sub.subproductImg instanceof File) {
-                    formData.append("subproductImg", sub.subproductImg); // ✅ matches backend
+                    formData.append(`subproductImg_${index}`, sub.subproductImg);
                 }
             });
             // ✅ Recipes files
-            product.recipes.forEach((rec) => {
+            product.recipes.forEach((rec, index) => {
                 if (rec.recipeMainImg instanceof File) {
-                    formData.append("recipeMainImg", rec.recipeMainImg); // ✅ matches backend
+                    formData.append(`recipeMainImg_${index}`, rec.recipeMainImg); // ✅ indexed
                 }
                 if (Array.isArray(rec.recipeSubImg)) {
                     rec.recipeSubImg.forEach(file => {
                         if (file instanceof File) {
-                            formData.append("recipeSubImg", file); // ✅ matches backend
+                            formData.append(`recipeSubImg_${index}`, file); // ✅ indexed
                         }
                     });
                 }
