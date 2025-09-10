@@ -228,6 +228,12 @@ function Sidebar() {
                                         <span className="sidebar_menu fw-medium">Product Data</span>
                                     </Link>
                                 </Nav.Item>
+                                <Nav.Item className='mb-2'>
+                                    <Link to="/extrasubproduct" className={`text-decoration-none nav-item ${isActive('/ProductData') ? 'active' : ''}`} style={{ color: "var(--red)" }} onClick={handleLinkClick}>
+                                        <MdOutlineDoubleArrow className="me-1" />
+                                        <span className="sidebar_menu fw-medium">ExtraSubProduct</span>
+                                    </Link>
+                                </Nav.Item>
                             </Nav>
                         )}
                     </div>
@@ -394,6 +400,12 @@ function Sidebar() {
                                         <Link to="/ProductData" className={`text-decoration-none nav-item ${isActive('/ProductData') ? 'active' : ''}`} style={{ color: "var(--red)" }} onClick={handleLinkClick}>
                                             <MdOutlineDoubleArrow className="me-1" />
                                             <span className="sidebar_menu fw-medium">Product Data</span>
+                                        </Link>
+                                    </Nav.Item>
+                                    <Nav.Item className='mb-2'>
+                                        <Link to="/extrasubproduct" className={`text-decoration-none nav-item ${isActive('/ProductData') ? 'active' : ''}`} style={{ color: "var(--red)" }} onClick={handleLinkClick}>
+                                            <MdOutlineDoubleArrow className="me-1" />
+                                            <span className="sidebar_menu fw-medium">ExtraSubProduct</span>
                                         </Link>
                                     </Nav.Item>
                                 </Nav>

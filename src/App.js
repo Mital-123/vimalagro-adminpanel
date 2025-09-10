@@ -19,6 +19,7 @@ import AboutBanner from './Pages/AboutPage/AboutBanner';
 import ProductBanner from './Pages/ProductPage/ProductBanner';
 import BlogBanner from './Pages/BlogPage/BlogBanner';
 import ContactBanner from './Pages/ContactPage/ContactBanner';
+import ExtraSubProduct from './Pages/ProductPage/ExtraSubProduct';
 
 function App() {
 
@@ -47,6 +48,7 @@ function App() {
                     <Route path='/faq' element={<Faq />} />
                     <Route path='/productAdminToggle' element={<ProductAdminToggle />} />
                     <Route path='/ProductData' element={<MainProductData />} />
+                    <Route path='/extrasubproduct' element={<ExtraSubProduct />} />
                     <Route path='/vimalaboutus' element={<Vimalaboutus />} />
                     <Route path='/leaderlogo' element={<Leaderlog />} />
                     <Route path='/ourstory' element={<Ourstory />} />
