@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { FaEdit, FaTrash } from "react-icons/fa";
 
-const API_URL = "http://localhost:8000/api/extrasubproducts"; // update if deployed
+const API_URL = "https://backendvimalagro.onrender.com/api/extrasubproducts"; // update if deployed
 
 function ExtraSubProduct() {
     const [subProducts, setSubProducts] = useState([]);
