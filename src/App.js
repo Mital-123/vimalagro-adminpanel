@@ -20,6 +20,7 @@ import ProductBanner from './Pages/ProductPage/ProductBanner';
 import BlogBanner from './Pages/BlogPage/BlogBanner';
 import ContactBanner from './Pages/ContactPage/ContactBanner';
 import ExtraSubProduct from './Pages/ProductPage/ExtraSubProduct';
+import BlogForm from './Pages/BlogPage/BlogForm';
 
 function App() {
 
@@ -56,6 +57,7 @@ function App() {
                     <Route path='/productbanner' element={<ProductBanner />} />
                     <Route path='/blogbanner' element={<BlogBanner />} />
                     <Route path='/contactbanner' element={<ContactBanner />} />
+                    <Route path='/bloglist' element={<BlogForm />} />
                   </Routes>
                 </div>
               </>
