@@ -46,7 +46,7 @@ function BlogForm() {
 
     const fetchBlogs = async () => {
         try {
-            const res = await axios.get("http://localhost:8000/api/blogs");
+            const res = await axios.get("https://backendvimalagro.onrender.com/api/blogs");
             setBlogs(res.data);
         } catch (err) {
             console.error("Error fetching blogs", err);
@@ -176,12 +176,12 @@ function BlogForm() {
             });
 
             if (editingBlogId) {
-                await axios.put(`http://localhost:8000/api/blogs/${editingBlogId}`, data, {
+                await axios.put(`https://backendvimalagro.onrender.com/api/blogs/${editingBlogId}`, data, {
                     headers: { "Content-Type": "multipart/form-data" },
                 });
                 alert("✅ Blog Updated!");
             } else {
-                await axios.post("http://localhost:8000/api/blogs/add", data, {
+                await axios.post("https://backendvimalagro.onrender.com/api/blogs/add", data, {
                     headers: { "Content-Type": "multipart/form-data" },
                 });
                 alert("✅ Blog Created!");
@@ -209,7 +209,7 @@ function BlogForm() {
 
     const deleteBlog = async (id) => {
         if (!window.confirm("Delete this blog?")) return;
-        await axios.delete(`http://localhost:8000/api/blogs/${id}`);
+        await axios.delete(`https://backendvimalagro.onrender.com/api/blogs/${id}`);
         fetchBlogs();
     };
 
