@@ -471,6 +471,43 @@ function BlogForm() {
                     </button>
                 </div>
             </form>
+
+            {formSubmitting && (
+                <div className="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center bg-white bg-opacity-75">
+                    <div className="spinner-border text-danger" role="status"></div>
+                </div>
+            )}
+
+            {/* Blogs Table */}
+            <h3 className="mt-5">📚 All Blogs</h3>
+            <table className="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Image</th>
+                        <th>Title</th>
+                        <th>Category</th>
+                        <th>Recipes</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {blogs.map((b) => (
+                        <tr key={b._id}>
+                            <td>{b.blogImage && <img src={b.blogImage} alt="" width="60" />}</td>
+                            <td>{b.title}</td>
+                            <td>{b.category}</td>
+                            <td>{b.recipes.length}</td>
+                            <td>
+                                <FaEdit className="text-warning fs-5 me-2" onClick={() => editBlog(b)} />
+                                <FaTrash
+                                    className="text-danger fs-5"
+                                    onClick={() => deleteBlog(b._id)}
+                                />
+                            </td>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
         </div>
     );
 }
