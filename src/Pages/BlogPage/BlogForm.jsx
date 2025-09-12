@@ -16,6 +16,7 @@ function BlogForm() {
     const [files, setFiles] = useState({
         blogImage: null,
         blogBanner: null,
+        blogBannerMobile: null,
         recipeImages: {},
     });
 
@@ -62,6 +63,7 @@ function BlogForm() {
         if (!form.category.trim()) err.category = "Category is required";
         if (!files.blogImage && !editingBlogId) err.blogImage = "Blog Image is required";
         if (!files.blogBanner && !editingBlogId) err.blogBanner = "Blog Banner is required";
+        if (!files.blogBannerMobile && !editingBlogId) err.blogBannerMobile = "Blog Banner(mobile) is required";
         if (form.recipes.length === 0) err.recipes = "At least one recipe is required";
         return err;
     };
@@ -195,6 +197,7 @@ function BlogForm() {
 
             if (files.blogImage) data.append("blogImage", files.blogImage);
             if (files.blogBanner) data.append("blogBanner", files.blogBanner);
+            if (files.blogBannerMobile) data.append("blogBannerMobile", files.blogBannerMobile);
 
             form.recipes.forEach((_, i) => {
                 if (files.recipeImages[i]) {
@@ -208,14 +211,14 @@ function BlogForm() {
                 });
                 alert("✅ Blog Updated!");
             } else {
-                await axios.post("https://backendvimalagro.onrender.com/api/blogs/add", data, {
+                await axios.post("http://localhost:8000/api/blogs/add", data, {
                     headers: { "Content-Type": "multipart/form-data" },
                 });
                 alert("✅ Blog Created!");
             }
 
             setForm({ title: "", description: "", category: "", recipes: [] });
-            setFiles({ blogImage: null, blogBanner: null, recipeImages: {} });
+            setFiles({ blogImage: null, blogBanner: null, blogBannerMobile: null, recipeImages: {} });
             setEditingBlogId(null);
             setErrors({});
             setSubmitted(false);
@@ -275,7 +278,7 @@ function BlogForm() {
                                 )}
                             </div>
 
-                            <div className="col-6 mt-3">
+                            <div className="col-12 mt-3">
                                 <label className="fw-bold">Blog Image</label>
                                 <input type="file" className={`form-control ${submitted && errors.blogImage ? "border-danger" : "border-secondary"}`} onChange={(e) => handleFile(e, "blogImage")} />
                                 {submitted && errors.blogImage && (
@@ -286,13 +289,23 @@ function BlogForm() {
                                 )}
                             </div>
                             <div className="col-6 mt-3">
-                                <label className="fw-bold">Blog Banner</label>
+                                <label className="fw-bold">Blog Banner(Desktop)</label>
                                 <input type="file" className={`form-control ${submitted && errors.blogBanner ? "border-danger" : "border-secondary"}`} onChange={(e) => handleFile(e, "blogBanner")} />
                                 {submitted && errors.blogBanner && (
                                     <small className="text-danger">{errors.blogBanner}</small>
                                 )}
                                 {files.blogBanner && (
                                     <img src={URL.createObjectURL(files.blogBanner)} alt="preview" width="80" />
+                                )}
+                            </div>
+                            <div className="col-6 mt-3">
+                                <label className="fw-bold">Blog Banner(Mobile)</label>
+                                <input type="file" className={`form-control ${submitted && errors.blogBannerMobile ? "border-danger" : "border-secondary"}`} onChange={(e) => handleFile(e, "blogBannerMobile")} />
+                                {submitted && errors.blogBannerMobile && (
+                                    <small className="text-danger">{errors.blogBannerMobile}</small>
+                                )}
+                                {files.blogBannerMobile && (
+                                    <img src={URL.createObjectURL(files.blogBannerMobile)} alt="preview" width="80" />
                                 )}
                             </div>
                         </div>
