@@ -57,7 +57,7 @@ function App() {
                     <Route path='/productbanner' element={<ProductBanner />} />
                     <Route path='/blogbanner' element={<BlogBanner />} />
                     <Route path='/contactbanner' element={<ContactBanner />} />
-                    <Route path='/bloglist' element={<BlogForm />} />
+                    <Route path='/blog' element={<BlogForm />} />
                   </Routes>
                 </div>
               </>

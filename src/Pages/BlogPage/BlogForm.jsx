@@ -22,7 +22,7 @@ function BlogForm() {
     // Recipe form state
     const [recipeForm, setRecipeForm] = useState({
         recipeName: "",
-        serving: 1,
+        serving: 0,
         prep_time: 0,
         cook_time: 0,
         description: "",
@@ -35,6 +35,7 @@ function BlogForm() {
 
     // Validation
     const [errors, setErrors] = useState({});
+    const [recipeErrors, setRecipeErrors] = useState({});
     const [submitted, setSubmitted] = useState(false);
 
     // Loading
@@ -53,12 +54,32 @@ function BlogForm() {
         }
     };
 
-    // ✅ Validation
+    // ✅ Validation for Blog
     const validate = () => {
         const err = {};
         if (!form.title.trim()) err.title = "Title is required";
         if (!form.description.trim()) err.description = "Description is required";
         if (!form.category.trim()) err.category = "Category is required";
+        if (!files.blogImage && !editingBlogId) err.blogImage = "Blog Image is required";
+        if (!files.blogBanner && !editingBlogId) err.blogBanner = "Blog Banner is required";
+        if (form.recipes.length === 0) err.recipes = "At least one recipe is required";
+        return err;
+    };
+
+    // ✅ Validation for Recipe
+    const validateRecipe = () => {
+        const err = {};
+        if (!recipeForm.recipeName.trim()) err.recipeName = "Recipe name is required";
+        if (!recipeForm.description.trim()) err.description = "Description is required";
+        if (!recipeForm.serving || recipeForm.serving <= 0) err.serving = "Serving must be > 0";
+        if (!recipeForm.prep_time || recipeForm.prep_time <= 0) err.prep_time = "Prep time required";
+        if (!recipeForm.cook_time || recipeForm.cook_time <= 0) err.cook_time = "Cook time required";
+        if (!recipeForm.ingredients.some((i) => i.trim() !== ""))
+            err.ingredients = "At least one ingredient required";
+        if (!recipeForm.cooking_instructions.some((i) => i.trim() !== ""))
+            err.cooking_instructions = "At least one step required";
+        if (!recipeImage && editingRecipeIndex === null)
+            err.recipeImage = "Recipe image is required";
         return err;
     };
 
@@ -79,6 +100,7 @@ function BlogForm() {
     // ✅ Recipe form handlers
     const handleRecipeField = (field, value) => {
         setRecipeForm((prev) => ({ ...prev, [field]: value }));
+        if (recipeErrors[field]) setRecipeErrors((prev) => ({ ...prev, [field]: null }));
     };
 
     const handleRecipeArray = (field, idx, value) => {
@@ -98,6 +120,10 @@ function BlogForm() {
     };
 
     const saveRecipe = () => {
+        const err = validateRecipe();
+        setRecipeErrors(err);
+        if (Object.keys(err).length > 0) return;
+
         let updatedRecipes = [...form.recipes];
         if (editingRecipeIndex !== null) {
             updatedRecipes[editingRecipeIndex] = { ...recipeForm };
@@ -129,6 +155,7 @@ function BlogForm() {
         });
         setRecipeImage(null);
         setEditingRecipeIndex(null);
+        setRecipeErrors({});
     };
 
     const editRecipe = (index) => {
@@ -228,43 +255,21 @@ function BlogForm() {
                         <div className="row">
                             <div className="col-6">
                                 <label className="fw-bold">Title</label>
-                                <input
-                                    type="text"
-                                    name="title"
-                                    value={form.title}
-                                    onChange={handleChange}
-                                    className={`form-control ${submitted && errors.title ? "border-danger" : "border-secondary"
-                                        }`}
-                                />
+                                <input type="text" name="title" value={form.title} onChange={handleChange} className={`form-control ${submitted && errors.title ? "border-danger" : "border-secondary"}`} />
                                 {submitted && errors.title && (
                                     <small className="text-danger">{errors.title}</small>
                                 )}
                             </div>
                             <div className="col-6">
                                 <label className="fw-bold">Category</label>
-                                <input
-                                    type="text"
-                                    name="category"
-                                    value={form.category}
-                                    onChange={handleChange}
-                                    className={`form-control ${submitted && errors.category ? "border-danger" : "border-secondary"
-                                        }`}
-                                />
+                                <input type="text" name="category" value={form.category} onChange={handleChange} className={`form-control ${submitted && errors.category ? "border-danger" : "border-secondary"}`} />
                                 {submitted && errors.category && (
                                     <small className="text-danger">{errors.category}</small>
                                 )}
                             </div>
                             <div className="col-12 mt-3">
                                 <label className="fw-bold">Description</label>
-                                <textarea
-                                    name="description"
-                                    value={form.description}
-                                    onChange={handleChange}
-                                    className={`form-control ${submitted && errors.description
-                                        ? "border-danger"
-                                        : "border-secondary"
-                                        }`}
-                                />
+                                <textarea name="description" value={form.description} onChange={handleChange} className={`form-control ${submitted && errors.description ? "border-danger" : "border-secondary"}`} />
                                 {submitted && errors.description && (
                                     <small className="text-danger">{errors.description}</small>
                                 )}
@@ -272,32 +277,22 @@ function BlogForm() {
 
                             <div className="col-6 mt-3">
                                 <label className="fw-bold">Blog Image</label>
-                                <input
-                                    type="file"
-                                    className="form-control"
-                                    onChange={(e) => handleFile(e, "blogImage")}
-                                />
+                                <input type="file" className={`form-control ${submitted && errors.blogImage ? "border-danger" : "border-secondary"}`} onChange={(e) => handleFile(e, "blogImage")} />
+                                {submitted && errors.blogImage && (
+                                    <small className="text-danger">{errors.blogImage}</small>
+                                )}
                                 {files.blogImage && (
-                                    <img
-                                        src={URL.createObjectURL(files.blogImage)}
-                                        alt="preview"
-                                        width="80"
-                                    />
+                                    <img src={URL.createObjectURL(files.blogImage)} alt="preview" width="80" />
                                 )}
                             </div>
                             <div className="col-6 mt-3">
                                 <label className="fw-bold">Blog Banner</label>
-                                <input
-                                    type="file"
-                                    className="form-control"
-                                    onChange={(e) => handleFile(e, "blogBanner")}
-                                />
+                                <input type="file" className={`form-control ${submitted && errors.blogBanner ? "border-danger" : "border-secondary"}`} onChange={(e) => handleFile(e, "blogBanner")} />
+                                {submitted && errors.blogBanner && (
+                                    <small className="text-danger">{errors.blogBanner}</small>
+                                )}
                                 {files.blogBanner && (
-                                    <img
-                                        src={URL.createObjectURL(files.blogBanner)}
-                                        alt="preview"
-                                        width="80"
-                                    />
+                                    <img src={URL.createObjectURL(files.blogBanner)} alt="preview" width="80" />
                                 )}
                             </div>
                         </div>
@@ -314,53 +309,40 @@ function BlogForm() {
                     <div className="px-4 pb-4 pt-2 bg-white">
                         {/* Recipe Form */}
                         <div className="border p-3 mb-3 rounded bg-light">
-                            <h5>
-                                {editingRecipeIndex !== null ? "Edit Recipe" : "Add Recipe"}
-                            </h5>
-                            <input
-                                type="text"
-                                placeholder="Recipe Name"
-                                value={recipeForm.recipeName}
-                                onChange={(e) => handleRecipeField("recipeName", e.target.value)}
-                                className="form-control my-1"
-                            />
+                            <h5>{editingRecipeIndex !== null ? "Edit Recipe" : "Add Recipe"}</h5>
+                            <div className="mt-3">
+                                <label className="fw-bold">Recipe Name</label>
+                                <input type="text" placeholder="Recipe Name" value={recipeForm.recipeName} onChange={(e) => handleRecipeField("recipeName", e.target.value)} className={`form-control my-1 ${recipeErrors.recipeName ? "border-danger" : "border-secondary"}`} />
+                                {recipeErrors.recipeName && (
+                                    <small className="text-danger">{recipeErrors.recipeName}</small>
+                                )}
+                            </div>
 
                             <div className="row mt-2">
                                 <div className="col-3">
-                                    <input
-                                        type="number"
-                                        placeholder="Serving"
-                                        value={recipeForm.serving}
-                                        onChange={(e) => handleRecipeField("serving", e.target.value)}
-                                        className="form-control"
-                                    />
+                                    <label className="fw-bold">Serving</label>
+                                    <input type="number" placeholder="Serving" value={recipeForm.serving} onChange={(e) => handleRecipeField("serving", e.target.value)} className={`form-control ${recipeErrors.serving ? "border-danger" : "border-secondary"}`} />
+                                    {recipeErrors.serving && (
+                                        <small className="text-danger">{recipeErrors.serving}</small>
+                                    )}
                                 </div>
                                 <div className="col-3">
-                                    <input
-                                        type="number"
-                                        placeholder="Prep Time (min)"
-                                        value={recipeForm.prep_time}
-                                        onChange={(e) => handleRecipeField("prep_time", e.target.value)}
-                                        className="form-control"
-                                    />
+                                    <label className="fw-bold">Prep Time (min)</label>
+                                    <input type="number" placeholder="Prep Time (min)" value={recipeForm.prep_time} onChange={(e) => handleRecipeField("prep_time", e.target.value)} className={`form-control ${recipeErrors.prep_time ? "border-danger" : "border-secondary"}`} />
+                                    {recipeErrors.prep_time && (
+                                        <small className="text-danger">{recipeErrors.prep_time}</small>
+                                    )}
                                 </div>
                                 <div className="col-3">
-                                    <input
-                                        type="number"
-                                        placeholder="Cook Time (min)"
-                                        value={recipeForm.cook_time}
-                                        onChange={(e) => handleRecipeField("cook_time", e.target.value)}
-                                        className="form-control"
-                                    />
+                                    <label className="fw-bold">Cook Time (min)</label>
+                                    <input type="number" placeholder="Cook Time (min)" value={recipeForm.cook_time} onChange={(e) => handleRecipeField("cook_time", e.target.value)} className={`form-control ${recipeErrors.cook_time ? "border-danger" : "border-secondary"}`} />
+                                    {recipeErrors.cook_time && (
+                                        <small className="text-danger">{recipeErrors.cook_time}</small>
+                                    )}
                                 </div>
                                 <div className="col-3">
-                                    <select
-                                        value={recipeForm.difficulty}
-                                        onChange={(e) =>
-                                            handleRecipeField("difficulty", e.target.value)
-                                        }
-                                        className="form-control"
-                                    >
+                                    <label className="fw-bold">Difficulty</label>
+                                    <select value={recipeForm.difficulty} onChange={(e) => handleRecipeField("difficulty", e.target.value)} className="form-control border-secondary">
                                         <option>Easy</option>
                                         <option>Medium</option>
                                         <option>Hard</option>
@@ -368,95 +350,73 @@ function BlogForm() {
                                 </div>
                             </div>
 
-                            <textarea
-                                placeholder="Description"
-                                value={recipeForm.description}
-                                onChange={(e) =>
-                                    handleRecipeField("description", e.target.value)
-                                }
-                                className="form-control my-2"
-                            />
+                            <div className="mt-3">
+                                <label className="fw-bold">Description</label>
+                                <textarea placeholder="Description" value={recipeForm.description} onChange={(e) => handleRecipeField("description", e.target.value)} className={`form-control my-2 ${recipeErrors.description ? "border-danger" : "border-secondary"}`} />
+                                {recipeErrors.description && (
+                                    <small className="text-danger">{recipeErrors.description}</small>
+                                )}
 
-                            <label className="fw-bold mt-2">Ingredients</label>
-                            {recipeForm.ingredients.map((ing, idx) => (
-                                <div key={idx} className="d-flex my-1">
-                                    <input
-                                        type="text"
-                                        value={ing}
-                                        onChange={(e) =>
-                                            handleRecipeArray("ingredients", idx, e.target.value)
-                                        }
-                                        className="form-control"
-                                    />
-                                    <button
-                                        type="button"
-                                        className="btn btn-danger btn-sm ms-2"
-                                        onClick={() => removeRecipeArrayItem("ingredients", idx)}
-                                    >
-                                        X
+                            </div>
+                            <div className="row">
+                                <div className="col-6 mt-3">
+                                    <label className="fw-bold mt-2">Add Ingredients</label>
+                                    {recipeForm.ingredients.map((ing, idx) => (
+                                        <div key={idx} className="d-flex my-1">
+                                            <input type="text" value={ing} onChange={(e) => handleRecipeArray("ingredients", idx, e.target.value)} className="form-control border-secondary" />
+                                            <button type="button" className="btn btn-danger btn-sm ms-2" onClick={() => removeRecipeArrayItem("ingredients", idx)}>
+                                                X
+                                            </button>
+                                        </div>
+                                    ))}
+                                    {recipeErrors.ingredients && (
+                                        <small className="text-danger">{recipeErrors.ingredients}</small>
+                                    )}
+                                    <button type="button" className="btn btn-sm btn-secondary" onClick={() => addRecipeArrayItem("ingredients")}>
+                                        + Add Ingredient
                                     </button>
                                 </div>
-                            ))}
-                            <button
-                                type="button"
-                                className="btn btn-sm btn-secondary"
-                                onClick={() => addRecipeArrayItem("ingredients")}
-                            >
-                                + Add Ingredient
-                            </button>
-
-                            <label className="fw-bold mt-3">Cooking Instructions</label>
-                            {recipeForm.cooking_instructions.map((step, idx) => (
-                                <div key={idx} className="d-flex my-1">
-                                    <input
-                                        type="text"
-                                        value={step}
-                                        onChange={(e) =>
-                                            handleRecipeArray("cooking_instructions", idx, e.target.value)
-                                        }
-                                        className="form-control"
-                                    />
-                                    <button
-                                        type="button"
-                                        className="btn btn-danger btn-sm ms-2"
-                                        onClick={() =>
-                                            removeRecipeArrayItem("cooking_instructions", idx)
-                                        }
-                                    >
-                                        X
+                                <div className="col-6 mt-3">
+                                    <label className="fw-bold mt-3">Add Cooking Instructions</label>
+                                    {recipeForm.cooking_instructions.map((step, idx) => (
+                                        <div key={idx} className="d-flex my-1">
+                                            <input type="text" value={step} onChange={(e) => handleRecipeArray("cooking_instructions", idx, e.target.value)} className="form-control border-secondary" />
+                                            <button type="button" className="btn btn-danger btn-sm ms-2" onClick={() => removeRecipeArrayItem("cooking_instructions", idx)}>
+                                                X
+                                            </button>
+                                        </div>
+                                    ))}
+                                    {recipeErrors.cooking_instructions && (
+                                        <small className="text-danger">{recipeErrors.cooking_instructions}</small>
+                                    )}
+                                    <button type="button" className="btn btn-sm btn-secondary" onClick={() => addRecipeArrayItem("cooking_instructions")}>
+                                        + Add Step
                                     </button>
                                 </div>
-                            ))}
-                            <button
-                                type="button"
-                                className="btn btn-sm btn-secondary"
-                                onClick={() => addRecipeArrayItem("cooking_instructions")}
-                            >
-                                + Add Step
-                            </button>
+                            </div>
 
                             <label className="fw-bold mt-2">Recipe Image</label>
                             <input
                                 type="file"
-                                className="form-control"
+                                className={`form-control ${recipeErrors.recipeImage ? "border-danger" : "border-secondary"}`}
                                 onChange={(e) => setRecipeImage(e.target.files[0])}
                             />
-                            {recipeImage && (
-                                <img
-                                    src={URL.createObjectURL(recipeImage)}
-                                    alt="recipe"
-                                    width="80"
-                                />
+                            {recipeErrors.recipeImage && (
+                                <small className="text-danger">{recipeErrors.recipeImage}</small>
                             )}
-
-                            <button
-                                type="button"
-                                className="btn btn-success mt-3"
-                                onClick={saveRecipe}
-                            >
-                                {editingRecipeIndex !== null ? "Update Recipe" : "Add Recipe"}
-                            </button>
+                            {recipeImage && (
+                                <img src={URL.createObjectURL(recipeImage)} alt="recipe" width="80" />
+                            )}
+                            <div className="mt-3 text-center col-12">
+                                <button type="button" className="px-4 py-1 fw-bold text-uppercase rounded-3 adminbtn shadow" onClick={saveRecipe}>
+                                    <span> {editingRecipeIndex !== null ? "Update Recipe" : "Add Recipe"}</span>
+                                </button>
+                            </div>
                         </div>
+
+                        {submitted && errors.recipes && (
+                            <small className="text-danger">{errors.recipes}</small>
+                        )}
 
                         {/* Recipe Table */}
                         {form.recipes.length > 0 && (
@@ -478,11 +438,7 @@ function BlogForm() {
                                         <tr key={i}>
                                             <td>
                                                 {files.recipeImages[i] ? (
-                                                    <img
-                                                        src={URL.createObjectURL(files.recipeImages[i])}
-                                                        alt="recipe"
-                                                        width="60"
-                                                    />
+                                                    <img src={URL.createObjectURL(files.recipeImages[i])} alt="recipe" width="60" />
                                                 ) : (
                                                     <small>No Image</small>
                                                 )}
@@ -498,16 +454,8 @@ function BlogForm() {
                                                 ))}
                                             </td>
                                             <td>
-                                                <FaEdit
-                                                    className="text-warning fs-5"
-                                                    style={{ cursor: "pointer" }}
-                                                    onClick={() => editRecipe(i)}
-                                                />
-                                                <FaTrash
-                                                    className="text-danger fs-5 ms-2"
-                                                    style={{ cursor: "pointer" }}
-                                                    onClick={() => removeRecipe(i)}
-                                                />
+                                                <FaEdit className="text-warning fs-5" style={{ cursor: "pointer" }} onClick={() => editRecipe(i)} />
+                                                <FaTrash className="text-danger fs-5 ms-2" style={{ cursor: "pointer" }} onClick={() => removeRecipe(i)} />
                                             </td>
                                         </tr>
                                     ))}
@@ -517,54 +465,12 @@ function BlogForm() {
                     </div>
                 </div>
 
-                <div className="text-center">
-                    <button type="submit" className="btn btn-primary" disabled={formSubmitting}>
-                        {formSubmitting
-                            ? "Saving..."
-                            : editingBlogId
-                                ? "Save Changes"
-                                : "Save Blog"}
+                <div className="mt-3 text-center col-12">
+                    <button type="submit" className="px-4 py-1 fw-bold text-uppercase rounded-3 adminbtn shadow" disabled={formSubmitting}>
+                        <span>{formSubmitting ? "Saving..." : editingBlogId ? "Save Changes" : "Save Blog"}</span>
                     </button>
                 </div>
             </form>
-
-            {/* Loader Overlay */}
-            {formSubmitting && (
-                <div className="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center bg-white bg-opacity-75">
-                    <div className="spinner-border text-danger" role="status"></div>
-                </div>
-            )}
-
-            {/* Blogs Table */}
-            <h3 className="mt-5">📚 All Blogs</h3>
-            <table className="table table-hover">
-                <thead>
-                    <tr>
-                        <th>Image</th>
-                        <th>Title</th>
-                        <th>Category</th>
-                        <th>Recipes</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {blogs.map((b) => (
-                        <tr key={b._id}>
-                            <td>{b.blogImage && <img src={b.blogImage} alt="" width="60" />}</td>
-                            <td>{b.title}</td>
-                            <td>{b.category}</td>
-                            <td>{b.recipes.length}</td>
-                            <td>
-                                <FaEdit className="text-warning fs-5 me-2" onClick={() => editBlog(b)} />
-                                <FaTrash
-                                    className="text-danger fs-5"
-                                    onClick={() => deleteBlog(b._id)}
-                                />
-                            </td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
         </div>
     );
 }
