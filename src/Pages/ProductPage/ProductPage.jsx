@@ -1,10 +1,24 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
-import { FaEdit, FaPlus, FaTrash } from "react-icons/fa";
+import { FaDatabase, FaEdit, FaPlus, FaTrash } from "react-icons/fa";
+import Swal from "sweetalert2";
 
 function ProductPage() {
+
     const [products, setProducts] = useState([]);
+    const [fetching, setFetching] = useState(true);
     const [editingProductId, setEditingProductId] = useState(null);
+    const [expandedProductId, setExpandedProductId] = useState(null);
+
+    const productBannerRef = useRef(null);
+    const productImagesRef = useRef(null);
+    const banner2Ref = useRef(null);
+    const howToMakeBannerRef = useRef(null);
+
+    const subproductImgRef = useRef(null);
+
+    const recipeMainImgRef = useRef(null);
+    const recipeSubImgRef = useRef(null);
 
     const [product, setProduct] = useState({
         productBanner: "",
@@ -34,7 +48,7 @@ function ProductPage() {
 
     const [recipe, setRecipe] = useState({
         recipeName: "",
-        steps: [],
+        steps: [""],
         recipeMainImg: "",
         recipeSubImg: "",
     });
@@ -67,6 +81,7 @@ function ProductPage() {
     }, []);
 
     const fetchProducts = async () => {
+        setFetching(true);
         try {
             const res = await axios.get(
                 "https://backendvimalagro.onrender.com/api/products"
@@ -74,51 +89,44 @@ function ProductPage() {
             setProducts(res.data);
         } catch (err) {
             console.error("Error fetching products", err);
+        } finally {
+            setFetching(false);
         }
     };
 
     // Helper: validate product fields
     const validateProduct = () => {
-        const errors = {};
-        if (!product.productName.trim())
-            errors.productName = "Product Name is required";
-        if (!product.productBanner && !files.productBanner)
-            errors.productBanner = "Product Banner is required";
+        // If ANY of the 6 fields are missing, return an error flag
         if (
-            product.productSizes.length === 0 ||
-            product.productSizes.every((s) => !s.trim())
-        )
-            errors.productSizes = "At least one product size is required";
-        return errors;
+            !product.productName.trim() ||
+            !product.productSizes.length ||
+            product.productSizes.every((s) => !s.trim()) ||
+            (!product.productBanner && !files.productBanner) ||
+            (!product.productImages.length && !files.productImages.length) ||
+            (!product.banner2 && !files.banner2) ||
+            (!product.howToMakeBanner && !files.howToMakeBanner)
+        ) {
+            return { allRequired: true };
+        }
+        return {};
     };
 
     // Helper: validate subproduct only if any field filled
     const validateSub = () => {
-        const errors = {};
-        const anyFieldFilled =
-            sub.subproductName.trim() ||
-            sub.subproductImg ||
-            sub.description.trim() ||
-            sub.weight;
-        if (!anyFieldFilled) return errors; // no validation if empty
-
-        if (!sub.subproductName.trim())
-            errors.subproductName = "Subproduct Name is required";
-        if (!sub.subproductImg) errors.subproductImg = "Subproduct Image is required";
-        if (!sub.description.trim()) errors.description = "Description is required";
-        if (!sub.weight) errors.weight = "Weight is required";
-        return errors;
+        if (
+            !sub.subproductName.trim() ||
+            !sub.subproductImg ||
+            !sub.description.trim() ||
+            !sub.weight
+        ) {
+            return { allRequired: true };
+        }
+        return {};
     };
 
     // Helper: validate recipe only if any field filled
     const validateRecipe = () => {
         const errors = {};
-        const anyFieldFilled =
-            recipe.recipeName.trim() ||
-            recipe.recipeMainImg ||
-            recipe.recipeSubImg ||
-            recipe.steps.length > 0;
-        if (!anyFieldFilled) return errors;
 
         if (!recipe.recipeName.trim())
             errors.recipeName = "Recipe Name is required";
@@ -166,12 +174,9 @@ function ProductPage() {
 
     // Handle steps change with error clearing
     const handleStepChange = (index, value) => {
-        const updatedSteps = [...recipe.steps];
-        updatedSteps[index] = value;
-        setRecipe((prev) => ({ ...prev, steps: updatedSteps }));
-        if (recipeErrors.steps) {
-            setRecipeErrors((prev) => ({ ...prev, steps: null }));
-        }
+        const newSteps = [...recipe.steps];
+        newSteps[index] = value;
+        setRecipe({ ...recipe, steps: newSteps });
     };
 
     // Handle file select with loader for product images
@@ -196,17 +201,20 @@ function ProductPage() {
     };
 
     // Recipe image upload with loader and error clearing
-    const handleRecipeFileUpload = async (e, key) => {
-        const file = e.target.files[0];
-        if (file) {
-            if (key === "recipeSubImg") {
-                setRecipe((prev) => ({
-                    ...prev,
-                    recipeSubImg: [...(prev.recipeSubImg || []), file],
-                }));
-            } else {
-                setRecipe((prev) => ({ ...prev, [key]: file }));
-            }
+    const handleRecipeFileUpload = (e, key) => {
+        const files = e.target.files;
+        if (!files) return;
+
+        if (key === "recipeSubImg") {
+            setRecipe((prev) => ({
+                ...prev,
+                recipeSubImg: Array.from(files), // always array
+            }));
+        } else {
+            setRecipe((prev) => ({
+                ...prev,
+                [key]: files[0],
+            }));
         }
     };
 
@@ -214,20 +222,41 @@ function ProductPage() {
     const addOrUpdateSubproduct = () => {
         setSubSubmitted(true);
         const errors = validateSub();
-        setSubErrors(errors);
-        if (Object.keys(errors).length > 0) return;
+
+        if (errors.allRequired) {
+            Swal.fire({
+                icon: "warning",
+                title: "All Fields Required!",
+                text: "Please fill in all fields for the subproduct before submitting.",
+            });
+            return;
+        }
 
         setProduct((prev) => {
             const updatedSubs = [...prev.subproducts];
             if (editingSubIndex !== null) {
                 updatedSubs[editingSubIndex] = { ...sub };
+                Swal.fire({
+                    title: "Updated!",
+                    text: "✅ SubProduct Updated Successfully.",
+                    icon: "success",
+                    timer: 2000,
+                    showConfirmButton: false,
+                });
             } else {
                 updatedSubs.push({ ...sub });
+                Swal.fire({
+                    title: "Added!",
+                    text: "✅ SubProduct Added Successfully.",
+                    icon: "success",
+                    timer: 2000,
+                    showConfirmButton: false,
+                });
             }
             return { ...prev, subproducts: updatedSubs };
         });
 
-        // reset form
+        // reset form after success
         setSub({
             subproductName: "",
             subproductImg: "",
@@ -237,6 +266,10 @@ function ProductPage() {
         setEditingSubIndex(null);
         setSubErrors({});
         setSubSubmitted(false);
+
+        if (subproductImgRef.current) {
+            subproductImgRef.current.value = "";
+        }
     };
 
     // Add or update recipe with validation
@@ -244,14 +277,36 @@ function ProductPage() {
         setRecipeSubmitted(true);
         const errors = validateRecipe();
         setRecipeErrors(errors);
-        if (Object.keys(errors).length > 0) return;
+
+        if (Object.keys(errors).length > 0) {
+            Swal.fire({
+                icon: "warning",
+                title: "All Fields Required!",
+                text: "Please fill in all fields for the recipe before submitting.",
+            });
+            return;
+        }
 
         setProduct((prev) => {
             const updatedRecipes = [...prev.recipes];
             if (editingRecipeIndex !== null) {
                 updatedRecipes[editingRecipeIndex] = { ...recipe };
+                Swal.fire({
+                    title: "Updated!",
+                    text: "✅ Recipe Updated Successfully.",
+                    icon: "success",
+                    timer: 2000,
+                    showConfirmButton: false,
+                });
             } else {
                 updatedRecipes.push({ ...recipe });
+                Swal.fire({
+                    title: "Added!",
+                    text: "✅ Recipe Added Successfully.",
+                    icon: "success",
+                    timer: 2000,
+                    showConfirmButton: false,
+                });
             }
             return { ...prev, recipes: updatedRecipes };
         });
@@ -259,13 +314,16 @@ function ProductPage() {
         // reset form
         setRecipe({
             recipeName: "",
-            steps: [],
+            steps: [""],
             recipeMainImg: "",
             recipeSubImg: "",
         });
         setEditingRecipeIndex(null);
         setRecipeErrors({});
         setRecipeSubmitted(false);
+
+        if (recipeMainImgRef.current) recipeMainImgRef.current.value = "";
+        if (recipeSubImgRef.current) recipeSubImgRef.current.value = "";
     };
 
     // Edit subproduct
@@ -279,25 +337,76 @@ function ProductPage() {
 
     // Remove subproduct
     const removeSubproduct = (index) => {
-        const updated = [...product.subproducts];
-        updated.splice(index, 1);
-        setProduct({ ...product, subproducts: updated });
-        if (editingSubIndex === index) {
-            setSub({
-                subproductName: "",
-                subproductImg: "",
-                description: "",
-                weight: "",
+        Swal.fire({
+            title: "Are you sure?",
+            text: "This subproduct will be deleted!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#d33",
+            cancelButtonColor: "#3085d6",
+            confirmButtonText: "Yes, delete it!",
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const updated = [...product.subproducts];
+                updated.splice(index, 1);
+                setProduct({ ...product, subproducts: updated });
+
+                if (editingSubIndex === index) {
+                    setSub({
+                        subproductName: "",
+                        subproductImg: "",
+                        description: "",
+                        weight: "",
+                    });
+                    setEditingSubIndex(null);
+                    setSubErrors({});
+                    setSubSubmitted(false);
+                }
+
+                Swal.fire({
+                    title: "Deleted!",
+                    text: "✅ SubProduct has been Deleted.",
+                    icon: "success",
+                    timer: 1500,
+                    showConfirmButton: false,
+                });
+            }
+        });
+    };
+
+    const addStep = () => {
+        const lastStep = recipe.steps[recipe.steps.length - 1];
+
+        if (!lastStep || !lastStep.trim()) {
+            Swal.fire({
+                icon: "warning",
+                title: "Step Required!",
+                text: "Please complete the current step before adding a new one.",
             });
-            setEditingSubIndex(null);
-            setSubErrors({});
-            setSubSubmitted(false);
+            return;
         }
+
+        setRecipe((prev) => ({
+            ...prev,
+            steps: [...prev.steps, ""],
+        }));
     };
 
     // Edit recipe
     const editRecipe = (index) => {
-        setRecipe(product.recipes[index]);
+        const r = product.recipes[index];
+
+        setRecipe({
+            recipeName: r.recipeName || "",
+            steps: r.steps && r.steps.length > 0 ? r.steps : [""],
+            recipeMainImg: r.recipeMainImg || "",
+            recipeSubImg: Array.isArray(r.recipeSubImg)
+                ? r.recipeSubImg
+                : r.recipeSubImg
+                    ? [r.recipeSubImg]   // wrap string into array
+                    : [],                // default empty
+        });
+
         setEditingRecipeIndex(index);
         setRecipeErrors({});
         setRecipeSubmitted(false);
@@ -306,20 +415,41 @@ function ProductPage() {
 
     // Remove recipe
     const removeRecipe = (index) => {
-        const updated = [...product.recipes];
-        updated.splice(index, 1);
-        setProduct({ ...product, recipes: updated });
-        if (editingRecipeIndex === index) {
-            setRecipe({
-                recipeName: "",
-                steps: [],
-                recipeMainImg: "",
-                recipeSubImg: "",
-            });
-            setEditingRecipeIndex(null);
-            setRecipeErrors({});
-            setRecipeSubmitted(false);
-        }
+        Swal.fire({
+            title: "Are you sure?",
+            text: "This recipe will be Deleted!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#d33",
+            cancelButtonColor: "#3085d6",
+            confirmButtonText: "Yes, delete it!",
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const updated = [...product.recipes];
+                updated.splice(index, 1);
+                setProduct({ ...product, recipes: updated });
+
+                if (editingRecipeIndex === index) {
+                    setRecipe({
+                        recipeName: "",
+                        steps: [""],
+                        recipeMainImg: "",
+                        recipeSubImg: [],
+                    });
+                    setEditingRecipeIndex(null);
+                    setRecipeErrors({});
+                    setRecipeSubmitted(false);
+                }
+
+                Swal.fire({
+                    title: "Deleted!",
+                    text: "✅ Recipe has been Deleted.",
+                    icon: "success",
+                    timer: 1500,
+                    showConfirmButton: false,
+                });
+            }
+        });
     };
 
     // Submit product form with validation and loader
@@ -328,18 +458,32 @@ function ProductPage() {
         setProductSubmitted(true);
 
         const errors = validateProduct();
-        setProductErrors(errors);
-        if (Object.keys(errors).length > 0) {
+
+        if (errors.allRequired) {
+            Swal.fire({
+                icon: "warning",
+                title: "All Fields Required!",
+                text: "Please fill in all fields for the new product before submitting.",
+            });
             window.scrollTo({ top: 0, behavior: "smooth" });
             return;
         }
+
+        Swal.fire({
+            title: editingProductId ? "Updating Product..." : "Uploaded Product...",
+            text: editingProductId
+                ? "Please wait while we update your product data."
+                : "Please wait while we add your new product data.",
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            },
+        });
 
         setFormSubmitting(true);
 
         try {
             const formData = new FormData();
-
-            // ✅ text fields
             formData.append("productName", product.productName);
             formData.append("productSizes", JSON.stringify(product.productSizes));
             formData.append("subproducts", JSON.stringify(product.subproducts.map(s => ({
@@ -352,7 +496,6 @@ function ProductPage() {
                 steps: r.steps,
             }))));
 
-            // ✅ files
             if (files.productBanner) formData.append("productBanner", files.productBanner);
             if (files.banner2) formData.append("banner2", files.banner2);
             if (files.howToMakeBanner) formData.append("howToMakeBanner", files.howToMakeBanner);
@@ -367,34 +510,45 @@ function ProductPage() {
                     formData.append(`subproductImg_${index}`, sub.subproductImg);
                 }
             });
-            // ✅ Recipes files
             product.recipes.forEach((rec, index) => {
                 if (rec.recipeMainImg instanceof File) {
-                    formData.append(`recipeMainImg_${index}`, rec.recipeMainImg); // ✅ indexed
+                    formData.append(`recipeMainImg_${index}`, rec.recipeMainImg);
                 }
                 if (Array.isArray(rec.recipeSubImg)) {
                     rec.recipeSubImg.forEach(file => {
                         if (file instanceof File) {
-                            formData.append(`recipeSubImg_${index}`, file); // ✅ indexed
+                            formData.append(`recipeSubImg_${index}`, file);
                         }
                     });
                 }
             });
 
-
-            // 🔥 send to backend
             if (editingProductId) {
                 await axios.put(
                     `https://backendvimalagro.onrender.com/api/products/${editingProductId}`,
                     formData,
                     { headers: { "Content-Type": "multipart/form-data" } }
                 );
-                alert("✅ Product Updated!");
-            } else {
-                await axios.post("https://backendvimalagro.onrender.com/api/products/add", formData, {
-                    headers: { "Content-Type": "multipart/form-data" },
+                Swal.fire({
+                    title: "Updated!",
+                    text: "✅ Product Updated Successfully.",
+                    icon: "success",
+                    timer: 2000,
+                    showConfirmButton: false
                 });
-                alert("✅ Product Saved!");
+            } else {
+                await axios.post(
+                    "https://backendvimalagro.onrender.com/api/products/add",
+                    formData,
+                    { headers: { "Content-Type": "multipart/form-data" } }
+                );
+                Swal.fire({
+                    title: "Added!",
+                    text: "✅ Product Added Successfully.",
+                    icon: "success",
+                    timer: 2000,
+                    showConfirmButton: false
+                });
             }
 
             // reset
@@ -408,14 +562,24 @@ function ProductPage() {
                 howToMakeBanner: "",
                 recipes: [],
             });
+            setFiles({
+                productBanner: null,
+                banner2: null,
+                howToMakeBanner: null,
+                productImages: [],
+            });
             setFiles({ productBanner: null, banner2: null, howToMakeBanner: null, productImages: [] });
             setEditingProductId(null);
-            setProductErrors({});
-            setProductSubmitted(false);
             fetchProducts();
+
+            if (productBannerRef.current) productBannerRef.current.value = "";
+            if (productImagesRef.current) productImagesRef.current.value = "";
+            if (banner2Ref.current) banner2Ref.current.value = "";
+            if (howToMakeBannerRef.current) howToMakeBannerRef.current.value = "";
+
         } catch (err) {
             console.error(err);
-            alert("❌ Failed to save product");
+            Swal.fire("❌ Failed to save product", "", "error");
         } finally {
             setFormSubmitting(false);
         }
@@ -425,6 +589,7 @@ function ProductPage() {
     const editProduct = (p) => {
         setProduct(p);
         setEditingProductId(p._id);
+        setExpandedProductId(p._id);
         setEditingSubIndex(null);
         setEditingRecipeIndex(null);
         setProductErrors({});
@@ -434,73 +599,93 @@ function ProductPage() {
 
     // Delete product
     const deleteProduct = async (id) => {
-        if (!window.confirm("Delete this product?")) return;
-        try {
-            await axios.delete(`https://backendvimalagro.onrender.com/api/products/${id}`);
-            fetchProducts();
-        } catch (err) {
-            console.error("Delete failed", err);
+        const result = await Swal.fire({
+            title: "Are you sure?",
+            text: "Do you really want to delete this product?",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#d33",
+            cancelButtonColor: "#3085d6",
+            confirmButtonText: "Yes, delete it!",
+            cancelButtonText: "Cancel"
+        });
+
+        if (result.isConfirmed) {
+            try {
+                await axios.delete(`https://backendvimalagro.onrender.com/api/products/${id}`);
+                fetchProducts();
+                Swal.fire({
+                    title: "Deleted!",
+                    text: "The product has been deleted.",
+                    icon: "success",
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+            } catch (err) {
+                console.error("Delete failed", err);
+                Swal.fire({
+                    title: "Error!",
+                    text: "Failed to delete the product.",
+                    icon: "error",
+                    confirmButtonText: "OK"
+                });
+            }
         }
     };
 
     return (
-        <div>
-            <div className="px-2">
-                <h2>{editingProductId ? "Edit Product" : "Add New Product"}</h2>
-                <form onSubmit={handleSubmit} noValidate>
-                    <div className="rounded-3 shadow overflow-hidden">
-                        <div
-                            className="p-3"
-                            style={{ background: "white", borderBottom: "2px solid lightgrey" }}
-                        >
-                            <h6 className="fw-bold m-0 text-dark">
-                                <FaPlus className="me-2" />
-                                Add New Product
-                            </h6>
+        <div className="container mt-3">
+            <form onSubmit={handleSubmit} noValidate>
+                <div className="rounded-3 shadow overflow-hidden">
+                    <div
+                        className="p-3"
+                        style={{ background: "white", borderBottom: "2px solid lightgrey" }}
+                    >
+                        <h6 className="fw-bold m-0 text-dark">
+                            <FaPlus className="me-2" />
+                            {editingProductId ? "Edit New Product" : "Add New Product"}
+                        </h6>
+                    </div>
+                    <div className="px-4 pb-4 pt-2 bg-white">
+                        <div className="d-lg-flex d-md-flex gap-3">
+                            <div className="w-100 w-lg-50 w-md-50 mt-2">
+                                <label className="d-block fw-bold">Product Name</label>
+                                <input
+                                    type="text"
+                                    name="productName"
+                                    placeholder="Enter Product Name"
+                                    value={product.productName}
+                                    onChange={handleChange}
+                                    className="mt-1 w-100 form-control border border-secondary"
+                                    disabled={formSubmitting}
+                                />
+                            </div>
+                            <div className="w-100 w-lg-50 w-md-50 mt-2">
+                                <label className="d-block fw-bold">Product Size (Comma Separated)</label>
+                                <input
+                                    type="text"
+                                    name="productSizes"
+                                    placeholder="Enter Product Size"
+                                    value={product.productSizes.join(",")}
+                                    onChange={handleChange}
+                                    className="mt-1 w-100 form-control border border-secondary"
+                                    disabled={formSubmitting}
+                                />
+                            </div>
                         </div>
-                        <div className="px-4 pb-4 pt-2 bg-white">
-                            <div className="row">
-                                <div className="col-6">
-                                    <label className="d-block fw-bold">Product Name</label>
-                                    <input
-                                        type="text"
-                                        name="productName"
-                                        value={product.productName}
-                                        onChange={handleChange}
-                                        className={`mt-1 w-100 form-control border ${productErrors.productName ? "border-danger" : "border-secondary"
-                                            }`}
-                                        disabled={formSubmitting}
-                                    />
-                                    {productSubmitted && productErrors.productName && (
-                                        <small className="text-danger">{productErrors.productName}</small>
-                                    )}
-                                </div>
-                                <div className="col-6">
-                                    <label className="d-block fw-bold">Product Sizes (comma separated)</label>
-                                    <input
-                                        type="text"
-                                        name="productSizes"
-                                        value={product.productSizes.join(",")}
-                                        onChange={handleChange}
-                                        className={`mt-1 w-100 form-control border ${productErrors.productSizes ? "border-danger" : "border-secondary"
-                                            }`}
-                                        disabled={formSubmitting}
-                                    />
-                                    {productSubmitted && productErrors.productSizes && (
-                                        <small className="text-danger">{productErrors.productSizes}</small>
-                                    )}
-                                </div>
-                                <div className="col-6">
-                                    <label className="d-block fw-bold">Product Banner</label>
-                                    <input
-                                        type="file"
-                                        className={`mt-1 w-100 form-control border ${productErrors.productBanner ? "border-danger" : "border-secondary"
-                                            }`}
-                                        onChange={(e) => handleFileSelect(e, "productBanner")}
-                                        disabled={formSubmitting || loadingImages.productBanner}
-                                    />
-                                    {loadingImages.productBanner && <div>Loading image...</div>}
-                                    {(files.productBanner || product.productBanner) && !loadingImages.productBanner && (
+                        <div className="d-lg-flex d-md-flex gap-3">
+                            <div className="w-100 w-lg-50 w-md-50 mt-2">
+                                <label className="d-block fw-bold">Product Banner</label>
+                                <input
+                                    type="file"
+                                    className="mt-1 w-100 form-control border border-secondary"
+                                    onChange={(e) => handleFileSelect(e, "productBanner")}
+                                    ref={productBannerRef}
+                                    disabled={formSubmitting || loadingImages.productBanner}
+                                />
+                                {loadingImages.productBanner && <div>Loading image...</div>}
+                                {(files.productBanner || product.productBanner) && !loadingImages.productBanner && (
+                                    <div className="mt-2">
                                         <img
                                             src={
                                                 files.productBanner
@@ -508,70 +693,78 @@ function ProductPage() {
                                                     : product.productBanner
                                             }
                                             alt="Product Banner"
-                                            width="100"
-                                            height={100}
+                                            className="object-fit-fill"
+                                            width={100}
+                                            height={60}
                                         />
-                                    )}
-                                    {productSubmitted && productErrors.productBanner && (
-                                        <small className="text-danger">{productErrors.productBanner}</small>
-                                    )}
-                                </div>
-                                <div className="col-6">
-                                    <label className="d-block fw-bold">Product Images</label>
-                                    <input
-                                        type="file"
-                                        className="mt-1 w-100 form-control border border-secondary"
-                                        multiple
-                                        onChange={(e) => handleFileSelect(e, "productImages", true)}
-                                        disabled={formSubmitting || loadingImages.productImages}
-                                    />
-                                    {loadingImages.productImages && <div>Loading images...</div>}
-                                    <div className="mt-2">
-                                        {[...product.productImages, ...files.productImages].map((img, i) => {
-                                            const src = typeof img === "string" ? img : URL.createObjectURL(img);
-                                            return (
-                                                <img
-                                                    key={i}
-                                                    src={src}
-                                                    alt={`Product Img ${i + 1}`}
-                                                    width="80"
-                                                    height={100}
-                                                    className="me-2"
-                                                />
-                                            );
-                                        })}
                                     </div>
+                                )}
+                            </div>
+                            <div className="w-100 w-lg-50 w-md-50 mt-2">
+                                <label className="d-block fw-bold">Product Image</label>
+                                <input
+                                    type="file"
+                                    className="mt-1 w-100 form-control border border-secondary"
+                                    multiple
+                                    ref={productImagesRef}
+                                    onChange={(e) => handleFileSelect(e, "productImages", true)}
+                                    disabled={formSubmitting || loadingImages.productImages}
+                                />
+                                {loadingImages.productImages && <div>Loading images...</div>}
+                                <div className="mt-2">
+                                    {[...product.productImages, ...files.productImages].map((img, i) => {
+                                        const src = typeof img === "string" ? img : URL.createObjectURL(img);
+                                        return (
+                                            <img
+                                                key={i}
+                                                src={src}
+                                                alt={`Product Img ${i + 1}`}
+                                                width={60}
+                                                height={60}
+                                                className="me-2 object-fit-fill"
+                                            />
+                                        );
+                                    })}
                                 </div>
-                                <div className="col-6">
-                                    <label className="d-block fw-bold">Banner 2</label>
-                                    <input
-                                        type="file"
-                                        className="mt-1 w-100 form-control border border-secondary"
-                                        onChange={(e) => handleFileSelect(e, "banner2")}
-                                        disabled={formSubmitting || loadingImages.banner2}
-                                    />
-                                    {loadingImages.banner2 && <div>Loading image...</div>}
-                                    {(files.banner2 || product.banner2) && !loadingImages.banner2 && (
+                            </div>
+                        </div>
+                        <div className="d-lg-flex d-md-flex gap-3">
+                            <div className="w-100 w-lg-50 w-md-50 mt-2">
+                                <label className="d-block fw-bold">Banner 2</label>
+                                <input
+                                    type="file"
+                                    className="mt-1 w-100 form-control border border-secondary"
+                                    onChange={(e) => handleFileSelect(e, "banner2")}
+                                    ref={banner2Ref}
+                                    disabled={formSubmitting || loadingImages.banner2}
+                                />
+                                {loadingImages.banner2 && <div>Loading image...</div>}
+                                {(files.banner2 || product.banner2) && !loadingImages.banner2 && (
+                                    <div className="mt-2">
                                         <img
                                             src={
                                                 files.banner2 ? URL.createObjectURL(files.banner2) : product.banner2
                                             }
                                             alt="Banner 2"
-                                            width="100"
-                                            height={100}
+                                            className="object-fit-fill"
+                                            width={100}
+                                            height={60}
                                         />
-                                    )}
-                                </div>
-                                <div className="col-6">
-                                    <label className="d-block fw-bold">How To Make Banner</label>
-                                    <input
-                                        type="file"
-                                        className="mt-1 w-100 form-control border border-secondary"
-                                        onChange={(e) => handleFileSelect(e, "howToMakeBanner")}
-                                        disabled={formSubmitting || loadingImages.howToMakeBanner}
-                                    />
-                                    {loadingImages.howToMakeBanner && <div>Loading image...</div>}
-                                    {(files.howToMakeBanner || product.howToMakeBanner) && !loadingImages.howToMakeBanner && (
+                                    </div>
+                                )}
+                            </div>
+                            <div className="w-100 w-lg-50 w-md-50 mt-2">
+                                <label className="d-block fw-bold">How To Make Banner</label>
+                                <input
+                                    type="file"
+                                    className="mt-1 w-100 form-control border border-secondary"
+                                    onChange={(e) => handleFileSelect(e, "howToMakeBanner")}
+                                    ref={howToMakeBannerRef}
+                                    disabled={formSubmitting || loadingImages.howToMakeBanner}
+                                />
+                                {loadingImages.howToMakeBanner && <div>Loading image...</div>}
+                                {(files.howToMakeBanner || product.howToMakeBanner) && !loadingImages.howToMakeBanner && (
+                                    <div className="mt-2">
                                         <img
                                             src={
                                                 files.howToMakeBanner
@@ -579,377 +772,445 @@ function ProductPage() {
                                                     : product.howToMakeBanner
                                             }
                                             alt="How To Make Banner"
-                                            width="100"
-                                            height={100}
+                                            className="object-fit-fill"
+                                            width={100}
+                                            height={60}
                                         />
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Subproduct Section */}
-                    <div className="rounded-3 shadow overflow-hidden mt-4">
-                        <div
-                            className="p-3"
-                            style={{ background: "white", borderBottom: "2px solid lightgrey" }}
-                        >
-                            <h6 className="fw-bold m-0 text-dark">
-                                <FaPlus className="me-2" /> Add SubProduct
-                            </h6>
-                        </div>
-                        <div className="px-4 pb-4 pt-2 bg-white">
-                            <div className="row gap-3">
-                                <h4>📦 Add Subproduct</h4>
-                                <div className="row">
-                                    <div className="col-12 col-md-6">
-                                        <label className="d-block fw-bold">Subproduct Name</label>
-                                        <input
-                                            type="text"
-                                            name="subproductName"
-                                            value={sub.subproductName}
-                                            onChange={handleSubChange}
-                                            className={`mt-1 w-100 form-control border ${subSubmitted && subErrors.subproductName ? "border-danger" : "border-secondary"
-                                                }`}
-                                            disabled={formSubmitting}
-                                        />
-                                        {subSubmitted && subErrors.subproductName && (
-                                            <small className="text-danger">{subErrors.subproductName}</small>
-                                        )}
                                     </div>
-                                    <div className="col-12 col-md-6">
-                                        <label className="d-block fw-bold">Subproduct Image</label>
-                                        <input
-                                            type="file"
-                                            className="mt-1 w-100 form-control border border-secondary"
-                                            onChange={handleSubFileUpload}
-                                            disabled={formSubmitting || loadingImages.subproductImg}
-                                        />
-                                        {loadingImages.subproductImg && <div>Loading image...</div>}
-                                        {sub.subproductImg && !loadingImages.subproductImg && (
-                                            <img src={sub.subproductImg instanceof File ? URL.createObjectURL(sub.subproductImg) : sub.subproductImg} alt="Subproduct" width="80" height={100} />
-                                        )}
-                                        {subSubmitted && subErrors.subproductImg && (
-                                            <small className="text-danger">{subErrors.subproductImg}</small>
-                                        )}
-                                    </div>
-                                    <div className="col-12 col-md-6">
-                                        <label className="d-block fw-bold">Description</label>
-                                        <input
-                                            type="text"
-                                            name="description"
-                                            value={sub.description}
-                                            onChange={handleSubChange}
-                                            className={`mt-1 w-100 form-control border ${subSubmitted && subErrors.description ? "border-danger" : "border-secondary"
-                                                }`}
-                                            disabled={formSubmitting}
-                                        />
-                                        {subSubmitted && subErrors.description && (
-                                            <small className="text-danger">{subErrors.description}</small>
-                                        )}
-                                    </div>
-                                    <div className="col-12 col-md-6">
-                                        <label className="d-block fw-bold">Weight</label>
-                                        <input
-                                            type="number"
-                                            name="weight"
-                                            value={sub.weight}
-                                            onChange={handleSubChange}
-                                            className={`mt-1 w-100 form-control border ${subSubmitted && subErrors.weight ? "border-danger" : "border-secondary"
-                                                }`}
-                                            disabled={formSubmitting}
-                                        />
-                                        {subSubmitted && subErrors.weight && (
-                                            <small className="text-danger">{subErrors.weight}</small>
-                                        )}
-                                    </div>
-                                </div>
-                                <div className="mt-3 text-center col-12">
-                                    <button
-                                        type="button"
-                                        className="px-4 py-1 fw-bold text-uppercase rounded-3 adminbtn shadow"
-                                        onClick={addOrUpdateSubproduct}
-                                        disabled={formSubmitting}
-                                    >
-                                        <span>{editingSubIndex !== null ? "✏️ Update Subproduct" : "+ Add Subproduct"}</span>
-                                    </button>
-                                </div>
-
-                                {product.subproducts.length > 0 && (
-                                    <table className="table table-bordered table-striped mb-4 text-center">
-                                        <thead>
-                                            <tr>
-                                                <th>Image</th>
-                                                <th>Name</th>
-                                                <th>Description</th>
-                                                <th>Weight</th>
-                                                <th>Action</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {product.subproducts.map((s, i) => (
-                                                <tr key={i}>
-                                                    <td>{s.subproductImg && <img src={s.subproductImg} alt="" width="50" />}</td>
-                                                    <td>{s.subproductName}</td>
-                                                    <td>{s.description}</td>
-                                                    <td>{s.weight}</td>
-                                                    <td>
-                                                        <FaEdit
-                                                            className="text-warning fs-5"
-                                                            onClick={() => editSubproduct(i)}
-                                                            disabled={formSubmitting}
-                                                        />
-
-                                                        <FaTrash
-                                                            className="text-danger fs-5 ms-0 ms-md-2"
-                                                            onClick={() => removeSubproduct(i)}
-                                                            disabled={formSubmitting}
-                                                        />
-
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
                                 )}
                             </div>
                         </div>
                     </div>
+                </div>
 
-                    {/* Recipe Section */}
-                    <div className="rounded-3 shadow overflow-hidden mt-4">
-                        <div
-                            className="p-3"
-                            style={{ background: "white", borderBottom: "2px solid lightgrey" }}
-                        >
+                {/* Subproduct Section */}
+                <div className="rounded-3 shadow overflow-hidden mt-4">
+                    <div
+                        className="p-3"
+                        style={{ background: "white", borderBottom: "2px solid lightgrey" }}
+                    >
+                        <h6 className="fw-bold m-0 text-dark">
+                            <FaPlus className="me-2" /> Add SubProduct
+                        </h6>
+                    </div>
+                    <div className="px-4 pb-4 pt-2 bg-white">
+                        <div className="d-lg-flex d-md-flex gap-3">
+                            <div className="w-100 w-lg-50 w-md-50 mt-2">
+                                <label className="d-block fw-bold">SubProduct Name</label>
+                                <input
+                                    type="text"
+                                    name="subproductName"
+                                    placeholder="Enter SubProduct Name"
+                                    value={sub.subproductName}
+                                    onChange={handleSubChange}
+                                    className={`mt-1 w-100 form-control border ${subSubmitted && subErrors.subproductName ? "border-danger" : "border-secondary"
+                                        }`}
+                                    disabled={formSubmitting}
+                                />
+                            </div>
+                            <div className="w-100 w-lg-50 w-md-50 mt-2">
+                                <label className="d-block fw-bold">Weight</label>
+                                <input
+                                    type="number"
+                                    name="weight"
+                                    placeholder="Enter Weight"
+                                    value={sub.weight}
+                                    onChange={handleSubChange}
+                                    className={`mt-1 w-100 form-control border ${subSubmitted && subErrors.weight ? "border-danger" : "border-secondary"
+                                        }`}
+                                    disabled={formSubmitting}
+                                />
+                            </div>
+                        </div>
+                        <div className="w-100 w-lg-50 w-md-50 mt-2">
+                            <label className="d-block fw-bold">Description</label>
+                            <textarea name="description"
+                                placeholder="Enter Description" value={sub.description}
+                                onChange={handleSubChange}
+                                className={`mt-1 w-100 form-control border ${subSubmitted && subErrors.description ? "border-danger" : "border-secondary"
+                                    }`}
+                                disabled={formSubmitting}></textarea>
+                        </div>
+                        <div className="w-100 w-lg-50 w-md-50 mt-2">
+                            <label className="d-block fw-bold">SubProduct Image</label>
+                            <input
+                                type="file"
+                                ref={subproductImgRef}
+                                className="mt-1 w-100 form-control border border-secondary"
+                                onChange={handleSubFileUpload}
+                                disabled={formSubmitting || loadingImages.subproductImg}
+                            />
+                            {loadingImages.subproductImg && <div>Loading image...</div>}
+                            {sub.subproductImg && !loadingImages.subproductImg && (
+                                <div className="mt-2">
+                                    <img src={sub.subproductImg instanceof File ? URL.createObjectURL(sub.subproductImg) : sub.subproductImg} alt="Subproduct" className="object-fit-fill"
+                                        width={60}
+                                        height={60}
+                                    />
+                                </div>
+                            )}
+                        </div>
+                        <div className="mt-3 text-center col-12">
+                            <button
+                                type="button"
+                                className="px-4 py-1 fw-bold text-uppercase rounded-3 adminbtn shadow"
+                                onClick={addOrUpdateSubproduct}
+                                disabled={formSubmitting}
+                            >
+                                <span>{editingSubIndex !== null ? "Update Subproduct" : "+ Add Subproduct"}</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                {product.subproducts.length > 0 && (
+                    <div className="rounded-3 shadow overflow-hidden my-4">
+                        <div className="p-3" style={{ background: "white", borderBottom: "2px solid lightgrey" }}>
                             <h6 className="fw-bold m-0 text-dark">
-                                <FaPlus className="me-2" />
-                                Add Recipe
+                                <FaDatabase className="me-2" />
+                                SubProduct Data
                             </h6>
                         </div>
-                        <div className="px-4 pb-4 pt-2 bg-white">
-                            <h4>🥘 Add Recipe</h4>
-                            <div className="row">
-                                <div className="col-12 col-md-6">
-                                    <label className="d-block fw-bold">Recipe Name</label>
+                        <div className="bg-white p-4 table-responsive">
+                            {fetching ? (
+                                <div className="text-center">
+                                    <div role="status">
+                                        <img src={require("../../assets/Images/loader.gif")} className="img-fluid" alt="" />
+                                    </div>
+                                </div>
+                            ) : (
+                                <table className="table table-bordered border-secondary custom-table table-hover text-center">
+                                    <thead style={{ fontSize: "15px" }}>
+                                        <tr>
+                                            <th className="text-white" style={{ width: "20%", background: "var(--red)" }}>SubProduct Image</th>
+                                            <th className="text-white" style={{ width: "20%", background: "var(--red)" }}>SubProduct Name</th>
+                                            <th className="text-white" style={{ width: "40%", background: "var(--red)" }}>Description</th>
+                                            <th className="text-white" style={{ width: "10%", background: "var(--red)" }}>Weight</th>
+                                            <th className="text-white" style={{ width: "10%", background: "var(--red)" }}>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="pera">
+                                        {product.subproducts.length > 0 ? (
+                                            product.subproducts.map((s, i) => (
+                                                <tr key={i}>
+                                                    <td style={{ width: "20%" }}>
+                                                        {s.subproductImg &&
+                                                            (s.subproductImg instanceof File ? (
+                                                                <img
+                                                                    src={URL.createObjectURL(s.subproductImg)}
+                                                                    alt="Subproduct"
+                                                                    width="50"
+                                                                />
+                                                            ) : (
+                                                                <img src={s.subproductImg} alt="Subproduct" width="50" />
+                                                            ))
+                                                        }
+                                                    </td>
+                                                    <td style={{ width: "20%" }}>{s.subproductName}</td>
+                                                    <td style={{ width: "40%" }}>{s.description}</td>
+                                                    <td style={{ width: "10%" }}>{s.weight}</td>
+                                                    <td style={{ width: "10%" }}>
+                                                        <div className="d-flex flex-column flex-md-row flex-lg-row justify-content-center align-items-center">
+                                                            <FaEdit
+                                                                className="text-warning fs-5 me-0 me-md-2 mb-2 mb-md-0"
+                                                                onClick={() => editSubproduct(i)}
+                                                                disabled={formSubmitting}
+                                                            />
+                                                            <FaTrash
+                                                                className="text-danger fs-5"
+                                                                onClick={() => removeSubproduct(i)}
+                                                                disabled={formSubmitting}
+                                                            />
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            ))
+                                        ) : (
+                                            <tr>
+                                                <td colSpan="5" className="text-center text-muted">No SubProduct Data Found.</td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            )}
+                        </div>
+                    </div>
+                )}
+
+                {/* Recipe Section */}
+                <div className="rounded-3 shadow overflow-hidden mt-4">
+                    <div
+                        className="p-3"
+                        style={{ background: "white", borderBottom: "2px solid lightgrey" }}
+                    >
+                        <h6 className="fw-bold m-0 text-dark">
+                            <FaPlus className="me-2" />
+                            Add Recipe
+                        </h6>
+                    </div>
+                    <div className="px-4 pb-4 pt-2 bg-white">
+                        <div className="w-100 w-lg-50 w-md-50 mt-2">
+                            <label className="d-block fw-bold">Recipe Name</label>
+                            <input
+                                type="text"
+                                name="recipeName"
+                                placeholder="Enter Recipe Name"
+                                value={recipe.recipeName}
+                                onChange={handleRecipeChange}
+                                className="mt-1 w-100 form-control border border-secondary"
+                                disabled={formSubmitting}
+                            />
+                        </div>
+                        <div className="w-100 w-lg-50 w-md-50 mt-2">
+                            <label className="d-block fw-bold">Recipe Step</label>
+                            {recipe.steps.map((step, index) => (
+                                <div key={index} className="d-flex align-items-center mb-2">
                                     <input
                                         type="text"
-                                        name="recipeName"
-                                        value={recipe.recipeName}
-                                        onChange={handleRecipeChange}
-                                        className={`mt-1 w-100 form-control border ${recipeSubmitted && recipeErrors.recipeName ? "border-danger" : "border-secondary"
-                                            }`}
+                                        value={step}
+                                        onChange={(e) => handleStepChange(index, e.target.value)}
+                                        className="mt-1 w-100 form-control border border-secondary"
+                                        placeholder={`Step ${index + 1}`}
                                         disabled={formSubmitting}
                                     />
-                                    {recipeSubmitted && recipeErrors.recipeName && (
-                                        <small className="text-danger">{recipeErrors.recipeName}</small>
-                                    )}
                                 </div>
-                                <div className="col-12 col-md-6">
-                                    <label className="d-block fw-bold">Main Recipe Image</label>
-                                    <input
-                                        type="file"
-                                        className="mt-1 w-100 form-control border border-secondary"
-                                        onChange={(e) => handleRecipeFileUpload(e, "recipeMainImg")}
-                                        disabled={formSubmitting || loadingImages.recipeMainImg}
-                                    />
-                                    {loadingImages.recipeMainImg && <div>Loading image...</div>}
-                                    {/* {recipe.recipeMainImg && !loadingImages.recipeMainImg && (
+                            ))}
+                            <button
+                                type="button"
+                                className="mt-1 px-4 py-1 fw-bold text-uppercase rounded-3 adminbtn"
+                                onClick={addStep}
+                                disabled={formSubmitting}
+                            >
+                                <span>+ Add Step</span>
+                            </button>
+                        </div>
+                        <div className="d-lg-flex d-md-flex gap-3">
+                            <div className="w-100 w-lg-50 w-md-50 mt-2">
+                                <label className="d-block fw-bold">Main Recipe Image</label>
+                                <input
+                                    type="file"
+                                    ref={recipeMainImgRef}
+                                    className="mt-1 w-100 form-control border border-secondary"
+                                    onChange={(e) => handleRecipeFileUpload(e, "recipeMainImg")}
+                                    disabled={formSubmitting || loadingImages.recipeMainImg}
+                                />
+                                {loadingImages.recipeMainImg && <div>Loading image...</div>}
+                                {/* {recipe.recipeMainImg && !loadingImages.recipeMainImg && (
                                         <img src={recipe.recipeMainImg} alt="" width="80" height={100} />
                                     )} */}
 
-                                    {recipe.recipeMainImg && !loadingImages.recipeMainImg && (
-                                        <img src={recipe.recipeMainImg instanceof File ? URL.createObjectURL(recipe.recipeMainImg) : sub.recipeMainImg} alt="Subproduct" width="80" height={100} />
-                                    )}
-                                    {recipeSubmitted && recipeErrors.recipeMainImg && (
-                                        <small className="text-danger">{recipeErrors.recipeMainImg}</small>
-                                    )}
-                                </div>
-
-                                <div className="col-12">
-                                    <label className="d-block fw-bold">Sub Recipe Image</label>
-                                    <input
-                                        type="file"
-                                        className="mt-1 w-100 form-control border border-secondary"
-                                        onChange={(e) => handleRecipeFileUpload(e, "recipeSubImg")}
-                                        disabled={formSubmitting || loadingImages.recipeSubImg}
+                                {recipe.recipeMainImg && !loadingImages.recipeMainImg && (
+                                    <img
+                                        src={
+                                            recipe.recipeMainImg instanceof File
+                                                ? URL.createObjectURL(recipe.recipeMainImg)
+                                                : recipe.recipeMainImg
+                                        }
+                                        alt="Main Recipe"
+                                        width={60}
+                                        height={60}
+                                        className="object-fit-fill mt-2"
                                     />
-                                    {loadingImages.recipeSubImg && <div>Loading image...</div>}
-                                    {/* {recipe.recipeSubImg && !loadingImages.recipeSubImg && (
-                                        <img src={recipe.recipeSubImg} alt="" width="80" height={100} />
-                                    )} */}
-
-                                    {recipe.recipeSubImg && !loadingImages.recipeSubImg && (
-                                        <img src={recipe.recipeSubImg instanceof File ? URL.createObjectURL(recipe.recipeSubImg) : sub.recipeSubImg} alt="Subproduct" width="80" height={100} />
-                                    )}
-                                    {recipeSubmitted && recipeErrors.recipeSubImg && (
-                                        <small className="text-danger">{recipeErrors.recipeSubImg}</small>
-                                    )}
-                                </div>
-                                <div className="col-12 ">
-                                    <label className="d-block fw-bold">Steps</label>
-                                    {recipe.steps.map((step, index) => (
-                                        <div key={index} className="d-flex align-items-center mb-2">
-                                            <input
-                                                type="text"
-                                                value={step}
-                                                onChange={(e) => handleStepChange(index, e.target.value)}
-                                                className="form-control me-2"
-                                                placeholder={`Step ${index + 1}`}
-                                                disabled={formSubmitting}
-                                            />
-                                            <button
-                                                type="button"
-                                                className="btn btn-sm btn-danger"
-                                                onClick={() => {
-                                                    const updatedSteps = recipe.steps.filter((_, i) => i !== index);
-                                                    setRecipe((prev) => ({ ...prev, steps: updatedSteps }));
-                                                    if (recipeErrors.steps) {
-                                                        setRecipeErrors((prev) => ({ ...prev, steps: null }));
-                                                    }
-                                                }}
-                                                disabled={formSubmitting}
-                                            >
-                                                ❌
-                                            </button>
-                                        </div>
-                                    ))}
-
-                                    {recipeSubmitted && recipeErrors.steps && (
-                                        <small className="text-danger">{recipeErrors.steps}</small>
-                                    )}
-
-                                    <button
-                                        type="button"
-                                        className="btn btn-sm btn-outline-danger"
-                                        onClick={() => setRecipe((prev) => ({ ...prev, steps: [...prev.steps, ""] }))}
-                                        disabled={formSubmitting}
-                                    >
-                                        + Add Step
-                                    </button>
-                                </div>
+                                )}
                             </div>
-                            <div className="mt-3 text-center">
-                                <button
-                                    type="button"
-                                    className="px-4 py-1 fw-bold text-uppercase rounded-3 adminbtn shadow"
-                                    onClick={addOrUpdateRecipe}
-                                    disabled={formSubmitting}
-                                >
-                                    <span>{editingRecipeIndex !== null ? "✏️ Update Recipe" : "+ Add Recipe"}</span>
-                                </button>
+                            <div className="w-100 w-lg-50 w-md-50 mt-2">
+                                <label className="d-block fw-bold">Sub Recipe Image</label>
+                                <input
+                                    type="file"
+                                    ref={recipeSubImgRef}
+                                    className="mt-1 w-100 form-control border border-secondary"
+                                    onChange={(e) => handleRecipeFileUpload(e, "recipeSubImg")}
+                                    disabled={formSubmitting || loadingImages.recipeSubImg}
+                                />
+                                {loadingImages.recipeSubImg && <div>Loading image...</div>}
+                                {Array.isArray(recipe.recipeSubImg) && recipe.recipeSubImg.length > 0 && !loadingImages.recipeSubImg && (
+                                    <div className="d-flex gap-2 flex-wrap mt-2">
+                                        {recipe.recipeSubImg.map((img, i) => (
+                                            <img
+                                                key={i}
+                                                src={img instanceof File ? URL.createObjectURL(img) : img}
+                                                alt={`Recipe Sub ${i + 1}`}
+                                                width={100}
+                                                height={60}
+                                                className="object-fit-fill mt-2"
+                                            />
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                         </div>
+                        <div className="mt-3 text-center">
+                            <button
+                                type="button"
+                                className="px-4 py-1 fw-bold text-uppercase rounded-3 adminbtn shadow"
+                                onClick={addOrUpdateRecipe}
+                                disabled={formSubmitting}
+                            >
+                                <span>{editingRecipeIndex !== null ? "Update Recipe" : "+ Add Recipe"}</span>
+                            </button>
+                        </div>
                     </div>
+                </div>
 
-                    {product.recipes.length > 0 && (
-                        <table className="table table-bordered table-striped mb-4 text-center">
-                            <thead>
+                {product.recipes.length > 0 && (
+                    <div className="rounded-3 shadow overflow-hidden my-4">
+                        <div className="p-3" style={{ background: "white", borderBottom: "2px solid lightgrey" }}>
+                            <h6 className="fw-bold m-0 text-dark">
+                                <FaDatabase className="me-2" />
+                                Recipe Data
+                            </h6>
+                        </div>
+                        <div className="bg-white p-4 table-responsive">
+                            {fetching ? (
+                                <div className="text-center">
+                                    <div role="status">
+                                        <img src={require("../../assets/Images/loader.gif")} className="img-fluid" alt="" />
+                                    </div>
+                                </div>
+                            ) : (
+                                <table className="table table-bordered border-secondary custom-table table-hover text-center">
+                                    <thead style={{ fontSize: "15px" }}>
+                                        <tr>
+                                            <th className="text-white" style={{ width: "20%", background: "var(--red)" }}>Main Recipe Image</th>
+                                            <th className="text-white" style={{ width: "20%", background: "var(--red)" }}>Sub Recipe Image</th>
+                                            <th className="text-white" style={{ width: "40%", background: "var(--red)" }}>Recipe Name</th>
+                                            <th className="text-white" style={{ width: "20%", background: "var(--red)" }}>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="pera">
+                                        {product.recipes.length > 0 ? (
+                                            product.recipes.map((r, i) => (
+                                                <tr key={i}>
+                                                    <td style={{ width: "20%" }}>
+                                                        {r.recipeMainImg &&
+                                                            (r.recipeMainImg instanceof File ? (
+                                                                <img src={URL.createObjectURL(r.recipeMainImg)} alt="Main Img" width="50" />
+                                                            ) : (
+                                                                <img src={r.recipeMainImg} alt="Main Img" width="50" />
+                                                            ))}
+                                                    </td>
+                                                    <td style={{ width: "20%" }}>
+                                                        {Array.isArray(r.recipeSubImg) ? (
+                                                            r.recipeSubImg.map((img, j) => (
+                                                                <img
+                                                                    key={j}
+                                                                    src={img instanceof File ? URL.createObjectURL(img) : img}
+                                                                    alt={`Sub Img ${j + 1}`}
+                                                                    width="50"
+                                                                    className="me-1"
+                                                                />
+                                                            ))
+                                                        ) : (
+                                                            r.recipeSubImg && (
+                                                                <img
+                                                                    src={r.recipeSubImg instanceof File ? URL.createObjectURL(r.recipeSubImg) : r.recipeSubImg}
+                                                                    alt="Sub Img"
+                                                                    width="50"
+                                                                />
+                                                            )
+                                                        )}
+                                                    </td>
+                                                    <td style={{ width: "40%" }}>{r.recipeName}</td>
+                                                    <td style={{ width: "20%" }}>
+                                                        <div className="d-flex flex-column flex-md-row flex-lg-row justify-content-center align-items-center">
+                                                            <FaEdit
+                                                                className="text-warning fs-5 me-0 me-md-2 mb-2 mb-md-0"
+                                                                onClick={() => editRecipe(i)}
+                                                                disabled={formSubmitting}
+                                                            />
+                                                            <FaTrash
+                                                                className="text-danger fs-5"
+                                                                onClick={() => removeRecipe(i)}
+                                                                disabled={formSubmitting}
+                                                            />
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            ))
+                                        ) : (
+                                            <tr>
+                                                <td colSpan="5" className="text-center text-muted">No Recipe Data Found.</td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            )}
+                        </div>
+                    </div>
+                )}
+
+                <div className="mt-4 text-center">
+                    <button
+                        type="submit"
+                        className="px-4 py-1 fw-bold text-uppercase rounded-3 adminbtn shadow"
+                        disabled={formSubmitting}
+                    >
+                        <span>
+                            {editingProductId ? "Update Product" : "Submit Product"}
+                        </span>
+                    </button>
+                </div>
+            </form>
+
+            <div className="rounded-3 shadow overflow-hidden my-4">
+                <div className="p-3" style={{ background: "white", borderBottom: "2px solid lightgrey" }}>
+                    <h6 className="fw-bold m-0 text-dark">
+                        <FaDatabase className="me-2" />
+                        Product Data
+                    </h6>
+                </div>
+                <div className="bg-white p-4 table-responsive">
+                    {fetching ? (
+                        <div className="text-center">
+                            <div role="status">
+                                <img src={require("../../assets/Images/loader.gif")} className="img-fluid" alt="" />
+                            </div>
+                        </div>
+                    ) : (
+                        <table className="table table-bordered border-secondary custom-table table-hover text-center">
+                            <thead style={{ fontSize: "15px" }}>
                                 <tr>
-                                    <th>Main Img</th>
-                                    <th>Sub Img</th>
-                                    <th>Name</th>
-                                    <th>Action</th>
+                                    <th className="text-white" style={{ width: "20%", background: "var(--red)" }}>Product Banner</th>
+                                    <th className="text-white" style={{ width: "20%", background: "var(--red)" }}>Product Name</th>
+                                    <th className="text-white" style={{ width: "50%", background: "var(--red)" }}>Product Size</th>
+                                    <th className="text-white" style={{ width: "10%", background: "var(--red)" }}>Action</th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                {product.recipes.map((r, i) => (
-                                    <tr key={i}>
-                                        <td>{r.recipeMainImg && <img src={r.recipeMainImg} alt="" width="50" />}</td>
-                                        <td>{r.recipeSubImg && <img src={r.recipeSubImg} alt="" width="50" />}</td>
-                                        <td>{r.recipeName}</td>
-                                        <td>
-                                            <FaEdit
-                                                className="text-warning fs-5"
-                                                onClick={() => editRecipe(i)}
-                                                disabled={formSubmitting}
-                                            />
-
-                                            <FaTrash
-                                                className="text-danger fs-5 ms-0 ms-md-2"
-                                                onClick={() => removeRecipe(i)}
-                                                disabled={formSubmitting}
-                                            />
-
-                                        </td>
+                            <tbody className="pera">
+                                {products.length > 0 ? (
+                                    products.map((p) => (
+                                        <tr key={p._id}>
+                                            <td style={{ width: "20%" }}>{p.productBanner && <img src={p.productBanner} alt="" width="60" />}</td>
+                                            <td style={{ width: "20%" }}>{p.productName}</td>
+                                            <td style={{ width: "50%" }}>{p.productSizes?.join(", ")}</td>
+                                            <td style={{ width: "10%" }}>
+                                                <div className="d-flex flex-column flex-md-row flex-lg-row justify-content-center align-items-center">
+                                                    <FaEdit
+                                                        className="text-warning fs-5 me-0 me-md-2 mb-2 mb-md-0"
+                                                        onClick={() => editProduct(p)}
+                                                        disabled={formSubmitting}
+                                                    />
+                                                    <FaTrash
+                                                        className="text-danger fs-5"
+                                                        onClick={() => deleteProduct(p._id)}
+                                                        disabled={formSubmitting}
+                                                    />
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))
+                                ) : (
+                                    <tr>
+                                        <td colSpan="5" className="text-center text-muted">No Product Data Found.</td>
                                     </tr>
-                                ))}
+                                )}
                             </tbody>
                         </table>
                     )}
-
-                    <div className="mt-3 text-center">
-                        <button
-                            type="submit"
-                            className="px-4 py-1 fw-bold text-uppercase rounded-3 adminbtn shadow"
-                            disabled={formSubmitting}
-                        >
-                            {formSubmitting ? "Saving..." : editingProductId ? "Save All Changes" : "Save Product"}
-                        </button>
-                    </div>
-                </form>
-                {/* Loader */}
-                {formSubmitting && (
-                    <div
-                        style={{
-                            position: "absolute",
-                            top: 0,
-                            left: 0,
-                            width: "100%",
-                            height: "100%",
-                            backgroundColor: "rgba(255, 255, 255, 0.7)",
-                            display: "flex",
-                            justifyContent: "center",
-                            alignItems: "center",
-                            zIndex: 1000,
-                            pointerEvents: "auto",
-                        }}
-                    >
-                        <img
-                            src={require('../../assets/Images/vimal logo.png')} // put your loader image path here
-                            alt="Loading..."
-                            style={{ width: 80, height: 80 }}
-                        />
-                    </div>
-                )}
-                {/* Product Table */}
-                <h3 className="mt-5">📦 All Products</h3>
-                <table className="table table-hover">
-                    <thead>
-                        <tr>
-                            <th>Banner</th>
-                            <th>Name</th>
-                            <th>Sizes</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {products.map((p) => (
-                            <tr key={p._id}>
-                                <td>{p.productBanner && <img src={p.productBanner} alt="" width="60" />}</td>
-                                <td>{p.productName}</td>
-                                <td>{p.productSizes?.join(", ")}</td>
-                                <td>
-                                    <FaEdit
-                                        className="text-warning fs-5"
-                                        onClick={() => editProduct(p)}
-                                        disabled={formSubmitting}
-                                    />
-
-                                    <FaTrash
-                                        className="text-danger fs-5 ms-0 ms-md-2"
-                                        onClick={() => deleteProduct(p._id)}
-                                        disabled={formSubmitting}
-                                    />
-
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
+                </div>
             </div>
         </div>
     );
 }
 
-export default ProductPage;
+export default ProductPage

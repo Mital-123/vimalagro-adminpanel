@@ -9,7 +9,6 @@ import Testimonial from './Pages/HomePage/Testimonial';
 import Certificates from './Pages/HomePage/Certificates';
 import Faq from './Pages/AboutPage/Faq';
 import ProductAdminToggle from './Pages/ProductPage/ProductAdminToggle';
-import MainProductData from './Pages/ProductPage/MainProductData';
 import HomeAbout from './Pages/HomePage/HomeAbout';
 import Vimalaboutus from './Pages/AboutPage/Vimalaboutus';
 import Leaderlog from './Pages/AboutPage/Leaderlog';
@@ -48,7 +47,6 @@ function App() {
                     <Route path='/certificate' element={<Certificates />} />
                     <Route path='/faq' element={<Faq />} />
                     <Route path='/productAdminToggle' element={<ProductAdminToggle />} />
-                    <Route path='/ProductData' element={<MainProductData />} />
                     <Route path='/extrasubproduct' element={<ExtraSubProduct />} />
                     <Route path='/vimalaboutus' element={<Vimalaboutus />} />
                     <Route path='/leaderlogo' element={<Leaderlog />} />

@@ -2,9 +2,10 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { FaPlus } from "react-icons/fa";
 
-const API_URL = "http://localhost:8000/api/heading"; // 🔹 Change to your deployed backend
+const API_URL = "http://localhost:8000/api/heading";
 
 function ExtraSubHeading() {
+
     const [products, setProducts] = useState([]);
     const [formData, setFormData] = useState({
         productId: "",
@@ -80,24 +81,22 @@ function ExtraSubHeading() {
     };
 
     return (
-        <div className="px-2">
+        <div className="container mt-3 mt-lg-0 mt-md-0">
             <form onSubmit={handleSubmit} noValidate>
-                <div className="rounded-3 shadow overflow-hidden mb-4">
-                    <div className="p-3 bg-white border-bottom">
+                <div className="rounded-3 shadow overflow-hidden">
+                    <div className="p-3"
+                        style={{ background: "white", borderBottom: "2px solid lightgrey" }}>
                         <h6 className="fw-bold m-0 text-dark">
                             <FaPlus className="me-2" /> SubProduct Details
                         </h6>
                     </div>
                     <div className="px-4 pb-4 pt-2 bg-white">
-                        <div className="row">
-                            <div className="col-6">
-                                <label className="fw-bold">Select Product</label>
+                        <div className="d-lg-flex d-md-flex gap-3">
+                            <div className="w-100 w-lg-50 w-md-50 mt-2">
+                                <label className="d-block fw-bold">Select Product</label>
                                 <select
                                     name="productId"
-                                    className={`form-control ${submitted && errors.productId
-                                        ? "border-danger"
-                                        : "border-secondary"
-                                        }`}
+                                    className="mt-1 w-100 form-control border border-secondary"
                                     value={formData.productId}
                                     onChange={handleChange}
                                 >
@@ -108,39 +107,30 @@ function ExtraSubHeading() {
                                         </option>
                                     ))}
                                 </select>
-                                {submitted && errors.productId && (
-                                    <small className="text-danger">{errors.productId}</small>
-                                )}
                             </div>
 
-                            <div className="col-6">
-                                <label className="fw-bold">Subproduct Title</label>
+                            <div className="w-100 w-lg-50 w-md-50 mt-2">
+                                <label className="d-block fw-bold">SubProduct Tittle</label>
                                 <input
                                     type="text"
                                     name="subproductTitle"
+                                    placeholder="Enter SubProduct Tittle"
                                     value={formData.subproductTitle}
                                     onChange={handleChange}
-                                    className={`form-control ${submitted && errors.subproductTitle
-                                        ? "border-danger"
-                                        : "border-secondary"
-                                        }`}
+                                    className="mt-1 w-100 form-control border border-secondary"
                                 />
-                                {submitted && errors.subproductTitle && (
-                                    <small className="text-danger">{errors.subproductTitle}</small>
-                                )}
                             </div>
                         </div>
+                        <div className="mt-3 text-center">
+                            <button
+                                type="submit"
+                                className="px-4 py-1 fw-bold text-uppercase rounded-3 adminbtn shadow"
+                                disabled={formSubmitting}
+                            >
+                                <span>{formSubmitting ? "Update" : "Submit"}</span>
+                            </button>
+                        </div>
                     </div>
-                </div>
-
-                <div className="text-center">
-                    <button
-                        type="submit"
-                        className="btn btn-primary"
-                        disabled={formSubmitting}
-                    >
-                        {formSubmitting ? "Saving..." : "Save SubProduct"}
-                    </button>
                 </div>
             </form>
 

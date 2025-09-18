@@ -101,6 +101,10 @@ textarea.form-control:focus {
 input::placeholder {
   font-size: 12.7px;
 }
+select {
+  font-size: 12.7px !important;
+  padding: 8px 12px !important;
+}
 input[type="file"] {
   font-size: 12.7px;
   padding: 8px;

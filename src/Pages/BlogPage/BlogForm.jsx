@@ -1,10 +1,18 @@
 import axios from "axios";
-import { useEffect, useState } from "react";
-import { FaPlus, FaEdit, FaTrash } from "react-icons/fa";
+import { useEffect, useRef, useState } from "react";
+import { FaPlus, FaEdit, FaTrash, FaDatabase } from "react-icons/fa";
+import Swal from "sweetalert2";
 
 function BlogForm() {
+
     const [blogs, setBlogs] = useState([]);
     const [editingBlogId, setEditingBlogId] = useState(null);
+    const [fetching, setFetching] = useState(true);
+
+    const blogImageRef = useRef();
+    const blogBannerRef = useRef();
+    const blogBannerMobileRef = useRef();
+    const recipeImageRef = useRef();
 
     const [form, setForm] = useState({
         title: "",
@@ -23,11 +31,11 @@ function BlogForm() {
     // Recipe form state
     const [recipeForm, setRecipeForm] = useState({
         recipeName: "",
-        serving: 0,
-        prep_time: 0,
-        cook_time: 0,
+        serving: null,
+        prep_time: null,
+        cook_time: null,
         description: "",
-        difficulty: "Easy",
+        difficulty: "",
         ingredients: [""],
         cooking_instructions: [""],
     });
@@ -47,11 +55,14 @@ function BlogForm() {
     }, []);
 
     const fetchBlogs = async () => {
+        setFetching(true);
         try {
             const res = await axios.get("https://backendvimalagro.onrender.com/api/blogs");
             setBlogs(res.data);
         } catch (err) {
             console.error("Error fetching blogs", err);
+        } finally {
+            setFetching(false);
         }
     };
 
@@ -63,7 +74,7 @@ function BlogForm() {
         if (!form.category.trim()) err.category = "Category is required";
         if (!files.blogImage && !editingBlogId) err.blogImage = "Blog Image is required";
         if (!files.blogBanner && !editingBlogId) err.blogBanner = "Blog Banner is required";
-        if (!files.blogBannerMobile && !editingBlogId) err.blogBannerMobile = "Blog Banner(mobile) is required";
+        if (!files.blogBannerMobile && !editingBlogId) err.blogBannerMobile = "Blog Banner (mobile) is required";
         if (form.recipes.length === 0) err.recipes = "At least one recipe is required";
         return err;
     };
@@ -88,6 +99,15 @@ function BlogForm() {
     // ✅ Handle Blog Field Change
     const handleChange = (e) => {
         const { name, value } = e.target;
+
+        // special condition only for description
+        if (name === "description") {
+            const words = value.trim().split(/\s+/);
+            if (words.length > 15) {
+                return; // stop typing after 15 words
+            }
+        }
+
         setForm((prev) => ({ ...prev, [name]: value }));
         if (errors[name]) setErrors((prev) => ({ ...prev, [name]: null }));
     };
@@ -112,6 +132,18 @@ function BlogForm() {
     };
 
     const addRecipeArrayItem = (field) => {
+        // Check if any existing input is empty
+        const hasEmpty = recipeForm[field].some((item) => item.trim() === "");
+        if (hasEmpty) {
+            Swal.fire({
+                icon: "warning",
+                title: "Step Required!",
+                text: "Please complete the current step before adding a new one.",
+            });
+            return;
+        }
+
+        // If all filled, add a new empty field
         setRecipeForm((prev) => ({ ...prev, [field]: [...prev[field], ""] }));
     };
 
@@ -122,18 +154,33 @@ function BlogForm() {
     };
 
     const saveRecipe = () => {
+        // Validate main fields
         const err = validateRecipe();
-        setRecipeErrors(err);
-        if (Object.keys(err).length > 0) return;
+
+        // Extra validation: check ingredients and instructions arrays
+        const hasEmptyIngredient = recipeForm.ingredients.some((item) => item.trim() === "");
+        const hasEmptyInstruction = recipeForm.cooking_instructions.some((item) => item.trim() === "");
+
+        if (Object.keys(err).length > 0 || hasEmptyIngredient || hasEmptyInstruction) {
+            Swal.fire({
+                icon: "warning",
+                title: "All Fields Required!",
+                text: "Please fill in all fields for the recipe before submitting.",
+            });
+            return; // Prevent submission
+        }
 
         let updatedRecipes = [...form.recipes];
+        const newRecipe = { ...recipeForm, image: recipeImage }; // 👈 image field add kari
+
         if (editingRecipeIndex !== null) {
-            updatedRecipes[editingRecipeIndex] = { ...recipeForm };
+            updatedRecipes[editingRecipeIndex] = newRecipe;
         } else {
-            updatedRecipes.push({ ...recipeForm });
+            updatedRecipes.push(newRecipe);
         }
 
         setForm((prev) => ({ ...prev, recipes: updatedRecipes }));
+
         setFiles((prev) => ({
             ...prev,
             recipeImages: {
@@ -144,38 +191,73 @@ function BlogForm() {
             },
         }));
 
+        Swal.fire({
+            title: editingRecipeIndex !== null ? "Updated!" : "Added!",
+            text: editingRecipeIndex !== null
+                ? "✅ Recipe Updated Successfully."
+                : "✅ Recipe Added Successfully.",
+            icon: "success",
+            timer: 2000,
+            showConfirmButton: false,
+        });
+
         // Reset recipe form
         setRecipeForm({
             recipeName: "",
-            serving: 1,
-            prep_time: 0,
-            cook_time: 0,
+            serving: "",
+            prep_time: "",
+            cook_time: "",
             description: "",
-            difficulty: "Easy",
+            difficulty: "",
             ingredients: [""],
             cooking_instructions: [""],
         });
         setRecipeImage(null);
         setEditingRecipeIndex(null);
         setRecipeErrors({});
+
+        if (recipeImageRef.current) recipeImageRef.current.value = "";
     };
 
     const editRecipe = (index) => {
-        setRecipeForm(form.recipes[index]);
-        setRecipeImage(files.recipeImages[index] || null);
+        const recipe = form.recipes[index];
+        setRecipeForm(recipe);
+
+        // handle both new file object and URL from backend
+        setRecipeImage(recipe.image || null);
+
         setEditingRecipeIndex(index);
         window.scrollTo({ top: 0, behavior: "smooth" });
     };
 
     const removeRecipe = (index) => {
-        if (!window.confirm("Delete this recipe?")) return;
-        const updated = [...form.recipes];
-        updated.splice(index, 1);
-        setForm((prev) => ({ ...prev, recipes: updated }));
+        Swal.fire({
+            title: "Are you sure?",
+            text: "This recipe will be deleted.",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Yes, delete it!",
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const updated = [...form.recipes];
+                updated.splice(index, 1);
+                setForm((prev) => ({ ...prev, recipes: updated }));
 
-        const updatedImages = { ...files.recipeImages };
-        delete updatedImages[index];
-        setFiles((prev) => ({ ...prev, recipeImages: updatedImages }));
+                const updatedImages = { ...files.recipeImages };
+                delete updatedImages[index];
+                setFiles((prev) => ({ ...prev, recipeImages: updatedImages }));
+
+                Swal.fire({
+                    title: "Deleted!",
+                    text: "✅ Recipe has been deleted.",
+                    icon: "success",
+                    timer: 2000,
+                    showConfirmButton: false,
+                });
+            }
+        });
     };
 
     // ✅ Submit
@@ -185,9 +267,31 @@ function BlogForm() {
 
         const err = validate();
         setErrors(err);
-        if (Object.keys(err).length > 0) return;
 
+        if (Object.keys(err).length > 0) {
+            // If there is any error, show the alert and block submission
+            Swal.fire({
+                icon: "warning",
+                title: "All Fields Required!",
+                text: "Please fill in all required fields for the new blog and add at least one recipe before submitting."
+            });
+            return;
+        }
+
+        // If validation passes, submit the form
         setFormSubmitting(true);
+
+        Swal.fire({
+            title: editingBlogId ? "Updating Blog..." : "Uploading Blog...",
+            text: editingBlogId
+                ? "Please wait while we update your blog data."
+                : "Please wait while we add your new blog data.",
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            },
+        });
+
         try {
             const data = new FormData();
             data.append("title", form.title);
@@ -209,320 +313,397 @@ function BlogForm() {
                 await axios.put(`https://backendvimalagro.onrender.com/api/blogs/${editingBlogId}`, data, {
                     headers: { "Content-Type": "multipart/form-data" },
                 });
-                alert("✅ Blog Updated!");
+                Swal.fire({
+                    title: "Updated!",
+                    text: "✅ Blog Updated Successfully.",
+                    icon: "success",
+                    timer: 2000,
+                    showConfirmButton: false
+                });
             } else {
                 await axios.post("https://backendvimalagro.onrender.com/api/blogs/add", data, {
                     headers: { "Content-Type": "multipart/form-data" },
                 });
-                alert("✅ Blog Created!");
+                Swal.fire({
+                    title: "Added!",
+                    text: "✅ Blog Added Successfully.",
+                    icon: "success",
+                    timer: 2000,
+                    showConfirmButton: false
+                });
             }
 
-            setForm({ title: "", description: "", category: "", recipes: [] });
+            setForm({ title: "", description: "", category: "", recipes: [], serving: null, prep_time: null, cook_time: null });
             setFiles({ blogImage: null, blogBanner: null, blogBannerMobile: null, recipeImages: {} });
+
+            if (blogImageRef.current) blogImageRef.current.value = "";
+            if (blogBannerRef.current) blogBannerRef.current.value = "";
+            if (blogBannerMobileRef.current) blogBannerMobileRef.current.value = "";
+            if (recipeImageRef.current) recipeImageRef.current.value = "";
+
             setEditingBlogId(null);
             setErrors({});
             setSubmitted(false);
             fetchBlogs();
+
         } catch (err) {
             console.error(err);
-            alert("❌ Error saving blog");
+            Swal.fire("❌ Failed to save blog", "", "error");
         } finally {
             setFormSubmitting(false);
         }
     };
 
     const editBlog = (b) => {
-        setForm(b);
+        setForm({
+            title: b.title,
+            description: b.description,
+            category: b.category,
+            recipes: b.recipes || [],
+            blogImage: b.blogImage || null,
+            blogBanner: b.blogBanner || null,
+            blogBannerMobile: b.blogBannerMobile || null,
+        });
+
+        setFiles({
+            blogImage: null,
+            blogBanner: null,
+            blogBannerMobile: null,
+            recipeImages: {},
+        });
+
         setEditingBlogId(b._id);
         window.scrollTo({ top: 0, behavior: "smooth" });
     };
 
     const deleteBlog = async (id) => {
-        if (!window.confirm("Delete this blog?")) return;
-        await axios.delete(`https://backendvimalagro.onrender.com/api/blogs/${id}`);
-        fetchBlogs();
+        Swal.fire({
+            title: "Are you sure?",
+            text: "This blog will be deleted.",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Yes, delete it!",
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                try {
+                    await axios.delete(`https://backendvimalagro.onrender.com/api/blogs/${id}`);
+                    Swal.fire({
+                        title: "Deleted!",
+                        text: "✅ Blog has been deleted.",
+                        icon: "success",
+                        timer: 2000,
+                        showConfirmButton: false,
+                    });
+                    fetchBlogs();
+                } catch (err) {
+                    console.error(err);
+                    Swal.fire("❌ Failed to delete blog", "", "error");
+                }
+            }
+        });
     };
 
     return (
-        <div className="px-2">
-            <h2>{editingBlogId ? "Edit Blog" : "Add New Blog"}</h2>
-            <form onSubmit={handleSubmit} noValidate>
-                {/* Blog Section */}
-                <div className="rounded-3 shadow overflow-hidden mb-4">
-                    <div className="p-3 bg-white border-bottom">
-                        <h6 className="fw-bold m-0 text-dark">
-                            <FaPlus className="me-2" /> Blog Details
-                        </h6>
-                    </div>
-                    <div className="px-4 pb-4 pt-2 bg-white">
-                        <div className="row">
-                            <div className="col-6">
-                                <label className="fw-bold">Title</label>
-                                <input type="text" name="title" value={form.title} onChange={handleChange} className={`form-control ${submitted && errors.title ? "border-danger" : "border-secondary"}`} />
-                                {submitted && errors.title && (
-                                    <small className="text-danger">{errors.title}</small>
-                                )}
+        <>
+            <div className="container mt-3 mt-lg-0 mt-md-0">
+                <h3 className="fw-bold text-center mb-3 mb-md-4 main-tittle">Blog</h3>
+                <form onSubmit={handleSubmit} noValidate>
+                    <div className="rounded-3 shadow overflow-hidden">
+                        <div className="p-3"
+                            style={{ background: "white", borderBottom: "2px solid lightgrey" }}>
+                            <h6 className="fw-bold m-0 text-dark">
+                                <FaPlus className="me-2" />Add New Blog
+                            </h6>
+                        </div>
+                        <div className="px-4 pb-4 pt-2 bg-white">
+                            <div className="d-lg-flex d-md-flex gap-3">
+                                <div className="w-100 w-lg-50 w-md-50 mt-2">
+                                    <label className="d-block fw-bold">Tittle</label>
+                                    <input type="text" placeholder="Enter Tittle" name="title" value={form.title} onChange={handleChange} className="mt-1 w-100 form-control border border-secondary" />
+                                </div>
+                                <div className="w-100 w-lg-50 w-md-50 mt-2">
+                                    <label className="d-block fw-bold">Category</label>
+                                    <input type="text" placeholder="Enter Category" name="category" value={form.category} onChange={handleChange} className="mt-1 w-100 form-control border border-secondary" />
+                                </div>
                             </div>
-                            <div className="col-6">
-                                <label className="fw-bold">Category</label>
-                                <input type="text" name="category" value={form.category} onChange={handleChange} className={`form-control ${submitted && errors.category ? "border-danger" : "border-secondary"}`} />
-                                {submitted && errors.category && (
-                                    <small className="text-danger">{errors.category}</small>
-                                )}
+                            <div className="w-100 w-lg-50 w-md-50 mt-2">
+                                <label className="d-block fw-bold">Blog Image</label>
+                                <input type="file" ref={blogImageRef} className="mt-1 w-100 form-control border border-secondary" onChange={(e) => handleFile(e, "blogImage")} />
+                                <div className="mt-2">
+                                    {files.blogImage ? (
+                                        <img src={URL.createObjectURL(files.blogImage)} alt="preview" width="80" />
+                                    ) : editingBlogId && form.blogImage ? (
+                                        <img src={form.blogImage} alt="preview" width="80" />
+                                    ) : null}
+                                </div>
                             </div>
-                            <div className="col-12 mt-3">
-                                <label className="fw-bold">Description</label>
-                                <textarea name="description" value={form.description} onChange={handleChange} className={`form-control ${submitted && errors.description ? "border-danger" : "border-secondary"}`} />
-                                {submitted && errors.description && (
-                                    <small className="text-danger">{errors.description}</small>
-                                )}
+                            <div className="w-100 w-lg-50 w-md-50 mt-2">
+                                <label className="d-block fw-bold">Description (Max 15 Words)</label>
+                                <textarea name="description" placeholder="Enter Description" value={form.description} onChange={handleChange} className="mt-1 w-100 form-control border border-secondary" />
                             </div>
-
-                            <div className="col-12 mt-3">
-                                <label className="fw-bold">Blog Image</label>
-                                <input type="file" className={`form-control ${submitted && errors.blogImage ? "border-danger" : "border-secondary"}`} onChange={(e) => handleFile(e, "blogImage")} />
-                                {submitted && errors.blogImage && (
-                                    <small className="text-danger">{errors.blogImage}</small>
-                                )}
-                                {files.blogImage && (
-                                    <img src={URL.createObjectURL(files.blogImage)} alt="preview" width="80" />
-                                )}
-                            </div>
-                            <div className="col-6 mt-3">
-                                <label className="fw-bold">Blog Banner(Desktop)</label>
-                                <input type="file" className={`form-control ${submitted && errors.blogBanner ? "border-danger" : "border-secondary"}`} onChange={(e) => handleFile(e, "blogBanner")} />
-                                {submitted && errors.blogBanner && (
-                                    <small className="text-danger">{errors.blogBanner}</small>
-                                )}
-                                {files.blogBanner && (
-                                    <img src={URL.createObjectURL(files.blogBanner)} alt="preview" width="80" />
-                                )}
-                            </div>
-                            <div className="col-6 mt-3">
-                                <label className="fw-bold">Blog Banner(Mobile)</label>
-                                <input type="file" className={`form-control ${submitted && errors.blogBannerMobile ? "border-danger" : "border-secondary"}`} onChange={(e) => handleFile(e, "blogBannerMobile")} />
-                                {submitted && errors.blogBannerMobile && (
-                                    <small className="text-danger">{errors.blogBannerMobile}</small>
-                                )}
-                                {files.blogBannerMobile && (
-                                    <img src={URL.createObjectURL(files.blogBannerMobile)} alt="preview" width="80" />
-                                )}
+                            <div className="d-lg-flex d-md-flex gap-3">
+                                <div className="w-100 w-lg-50 w-md-50 mt-2">
+                                    <label className="d-block fw-bold">Blog Banner (Desktop)</label>
+                                    <input type="file" ref={blogBannerRef} className="mt-1 w-100 form-control border border-secondary" onChange={(e) => handleFile(e, "blogBanner")} />
+                                    <div className="mt-2">
+                                        {files.blogBanner ? (
+                                            <img src={URL.createObjectURL(files.blogBanner)} alt="preview" width="80" />
+                                        ) : editingBlogId && form.blogBanner ? (
+                                            <img src={form.blogBanner} alt="preview" width="80" />
+                                        ) : null}
+                                    </div>
+                                </div>
+                                <div className="w-100 w-lg-50 w-md-50 mt-2">
+                                    <label className="d-block fw-bold">Blog Banner (Mobile)</label>
+                                    <input type="file" ref={blogBannerMobileRef} className="mt-1 w-100 form-control border border-secondary" onChange={(e) => handleFile(e, "blogBannerMobile")} />
+                                    <div className="mt-2">
+                                        {files.blogBannerMobile ? (
+                                            <img src={URL.createObjectURL(files.blogBannerMobile)} alt="preview" width="80" />
+                                        ) : editingBlogId && form.blogBannerMobile ? (
+                                            <img src={form.blogBannerMobile} alt="preview" width="80" />
+                                        ) : null}
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                {/* Recipes Section */}
-                <div className="rounded-3 shadow overflow-hidden mb-4">
-                    <div className="p-3 bg-white border-bottom">
-                        <h6 className="fw-bold m-0 text-dark">
-                            <FaPlus className="me-2" /> Recipes
-                        </h6>
-                    </div>
-                    <div className="px-4 pb-4 pt-2 bg-white">
-                        {/* Recipe Form */}
-                        <div className="border p-3 mb-3 rounded bg-light">
-                            <h5>{editingRecipeIndex !== null ? "Edit Recipe" : "Add Recipe"}</h5>
+                    <div className="rounded-3 shadow overflow-hidden mt-4">
+                        <div
+                            className="p-3"
+                            style={{ background: "white", borderBottom: "2px solid lightgrey" }}
+                        >
+                            <h6 className="fw-bold m-0 text-dark">
+                                <FaPlus className="me-2" />
+                                {editingRecipeIndex !== null ? "Edit Recipe" : "Add New Recipe"}
+                            </h6>
+                        </div>
+                        <div className="px-4 pb-4 pt-2 bg-white">
+                            <div className="w-100 w-lg-50 w-md-50 mt-2">
+                                <label className="d-block fw-bold">Recipe Name</label>
+                                <input type="text" placeholder="Recipe Name" value={recipeForm.recipeName} onChange={(e) => handleRecipeField("recipeName", e.target.value)} className="mt-1 w-100 form-control border border-secondary" />
+                            </div>
+                            <div className="d-lg-flex d-md-flex gap-3">
+                                <div className="w-100 w-lg-50 w-md-50 mt-2">
+                                    <label className="d-block fw-bold">Serving</label>
+                                    <input type="number" placeholder="0" value={recipeForm.serving} onChange={(e) => handleRecipeField("serving", e.target.value)} className="mt-1 w-100 form-control border border-secondary" />
+                                </div>
+                                <div className="w-100 w-lg-50 w-md-50 mt-2">
+                                    <label className="d-block fw-bold">Prep Time (min)</label>
+                                    <input type="number" placeholder="0 min" value={recipeForm.prep_time} onChange={(e) => handleRecipeField("prep_time", e.target.value)} className="mt-1 w-100 form-control border border-secondary" />
+                                </div>
+                                <div className="w-100 w-lg-50 w-md-50 mt-2">
+                                    <label className="d-block fw-bold">Cook Time (min)</label>
+                                    <input type="number" placeholder="0 min" value={recipeForm.cook_time} onChange={(e) => handleRecipeField("cook_time", e.target.value)} className="mt-1 w-100 form-control border border-secondary" />
+                                </div>
+                                <div className="w-100 w-lg-50 w-md-50 mt-2">
+                                    <label className="d-block fw-bold">Difficulty</label>
+                                    <input type="text" placeholder="Enter Difficulty" value={recipeForm.difficulty} onChange={(e) => handleRecipeField("difficulty", e.target.value)} className="mt-1 w-100 form-control border border-secondary" />
+                                </div>
+                            </div>
                             <div className="mt-3">
-                                <label className="fw-bold">Recipe Name</label>
-                                <input type="text" placeholder="Recipe Name" value={recipeForm.recipeName} onChange={(e) => handleRecipeField("recipeName", e.target.value)} className={`form-control my-1 ${recipeErrors.recipeName ? "border-danger" : "border-secondary"}`} />
-                                {recipeErrors.recipeName && (
-                                    <small className="text-danger">{recipeErrors.recipeName}</small>
-                                )}
+                                <label className="d-block fw-bold">Description</label>
+                                <textarea placeholder="Enter Description" value={recipeForm.description} onChange={(e) => handleRecipeField("description", e.target.value)} className="mt-1 w-100 form-control border border-secondary" />
                             </div>
-
-                            <div className="row mt-2">
-                                <div className="col-3">
-                                    <label className="fw-bold">Serving</label>
-                                    <input type="number" placeholder="Serving" value={recipeForm.serving} onChange={(e) => handleRecipeField("serving", e.target.value)} className={`form-control ${recipeErrors.serving ? "border-danger" : "border-secondary"}`} />
-                                    {recipeErrors.serving && (
-                                        <small className="text-danger">{recipeErrors.serving}</small>
-                                    )}
-                                </div>
-                                <div className="col-3">
-                                    <label className="fw-bold">Prep Time (min)</label>
-                                    <input type="number" placeholder="Prep Time (min)" value={recipeForm.prep_time} onChange={(e) => handleRecipeField("prep_time", e.target.value)} className={`form-control ${recipeErrors.prep_time ? "border-danger" : "border-secondary"}`} />
-                                    {recipeErrors.prep_time && (
-                                        <small className="text-danger">{recipeErrors.prep_time}</small>
-                                    )}
-                                </div>
-                                <div className="col-3">
-                                    <label className="fw-bold">Cook Time (min)</label>
-                                    <input type="number" placeholder="Cook Time (min)" value={recipeForm.cook_time} onChange={(e) => handleRecipeField("cook_time", e.target.value)} className={`form-control ${recipeErrors.cook_time ? "border-danger" : "border-secondary"}`} />
-                                    {recipeErrors.cook_time && (
-                                        <small className="text-danger">{recipeErrors.cook_time}</small>
-                                    )}
-                                </div>
-                                <div className="col-3">
-                                    <label className="fw-bold">Difficulty</label>
-                                    <select value={recipeForm.difficulty} onChange={(e) => handleRecipeField("difficulty", e.target.value)} className="form-control border-secondary">
-                                        <option>Easy</option>
-                                        <option>Medium</option>
-                                        <option>Hard</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div className="mt-3">
-                                <label className="fw-bold">Description</label>
-                                <textarea placeholder="Description" value={recipeForm.description} onChange={(e) => handleRecipeField("description", e.target.value)} className={`form-control my-2 ${recipeErrors.description ? "border-danger" : "border-secondary"}`} />
-                                {recipeErrors.description && (
-                                    <small className="text-danger">{recipeErrors.description}</small>
-                                )}
-
-                            </div>
-                            <div className="row">
-                                <div className="col-6 mt-3">
-                                    <label className="fw-bold mt-2">Add Ingredients</label>
+                            <div className="d-lg-flex d-md-flex gap-3">
+                                <div className="w-100 w-lg-50 w-md-50 mt-2">
+                                    <label className="d-block fw-bold">Add Ingredients</label>
                                     {recipeForm.ingredients.map((ing, idx) => (
-                                        <div key={idx} className="d-flex my-1">
-                                            <input type="text" value={ing} onChange={(e) => handleRecipeArray("ingredients", idx, e.target.value)} className="form-control border-secondary" />
-                                            <button type="button" className="btn btn-danger btn-sm ms-2" onClick={() => removeRecipeArrayItem("ingredients", idx)}>
-                                                X
-                                            </button>
+                                        <div key={idx} className="d-flex mb-2">
+                                            <input type="text" placeholder="Enter Ingredients Step" value={ing} onChange={(e) => handleRecipeArray("ingredients", idx, e.target.value)} className="mt-1 w-100 form-control border border-secondary" />
                                         </div>
                                     ))}
-                                    {recipeErrors.ingredients && (
-                                        <small className="text-danger">{recipeErrors.ingredients}</small>
-                                    )}
-                                    <button type="button" className="btn btn-sm btn-secondary" onClick={() => addRecipeArrayItem("ingredients")}>
-                                        + Add Ingredient
+                                    <button
+                                        type="button"
+                                        className="mt-1 px-4 py-1 fw-bold text-uppercase rounded-3 adminbtn"
+                                        onClick={() => addRecipeArrayItem("ingredients")}
+                                    >
+                                        <span>+ Add Ingredient</span>
                                     </button>
                                 </div>
-                                <div className="col-6 mt-3">
-                                    <label className="fw-bold mt-3">Add Cooking Instructions</label>
+                                <div className="w-100 w-lg-50 w-md-50 mt-2">
+                                    <label className="d-block fw-bold">Add Cooking Instructions</label>
                                     {recipeForm.cooking_instructions.map((step, idx) => (
-                                        <div key={idx} className="d-flex my-1">
-                                            <input type="text" value={step} onChange={(e) => handleRecipeArray("cooking_instructions", idx, e.target.value)} className="form-control border-secondary" />
-                                            <button type="button" className="btn btn-danger btn-sm ms-2" onClick={() => removeRecipeArrayItem("cooking_instructions", idx)}>
-                                                X
-                                            </button>
+                                        <div key={idx} className="d-flex mb-2">
+                                            <input type="text" placeholder="Enter Cooking Instructions Step" value={step} onChange={(e) => handleRecipeArray("cooking_instructions", idx, e.target.value)} className="mt-1 w-100 form-control border border-secondary" />
                                         </div>
                                     ))}
-                                    {recipeErrors.cooking_instructions && (
-                                        <small className="text-danger">{recipeErrors.cooking_instructions}</small>
-                                    )}
-                                    <button type="button" className="btn btn-sm btn-secondary" onClick={() => addRecipeArrayItem("cooking_instructions")}>
-                                        + Add Step
+                                    <button
+                                        type="button"
+                                        className="mt-1 px-4 py-1 fw-bold text-uppercase rounded-3 adminbtn"
+                                        onClick={() => addRecipeArrayItem("cooking_instructions")}
+                                    >
+                                        <span>+ Add Step</span>
                                     </button>
                                 </div>
                             </div>
-
-                            <label className="fw-bold mt-2">Recipe Image</label>
-                            <input
-                                type="file"
-                                className={`form-control ${recipeErrors.recipeImage ? "border-danger" : "border-secondary"}`}
-                                onChange={(e) => setRecipeImage(e.target.files[0])}
-                            />
-                            {recipeErrors.recipeImage && (
-                                <small className="text-danger">{recipeErrors.recipeImage}</small>
-                            )}
-                            {recipeImage && (
-                                <img src={URL.createObjectURL(recipeImage)} alt="recipe" width="80" />
-                            )}
-                            <div className="mt-3 text-center col-12">
+                            <div className="w-100 w-lg-50 w-md-50 mt-2">
+                                <label className="d-block fw-bold">Recipe Image</label>
+                                <input
+                                    type="file"
+                                    ref={recipeImageRef}
+                                    className="mt-1 w-100 form-control border border-secondary"
+                                    onChange={(e) => setRecipeImage(e.target.files[0])}
+                                />
+                                <div className="mt-2">
+                                    {recipeImage ? (
+                                        typeof recipeImage === "object" ? (
+                                            <img src={URL.createObjectURL(recipeImage)} alt="recipe" width="80" />
+                                        ) : (
+                                            <img src={recipeImage} alt="recipe" width="80" />
+                                        )
+                                    ) : null}
+                                </div>
+                            </div>
+                            <div className="mt-3 text-center">
                                 <button type="button" className="px-4 py-1 fw-bold text-uppercase rounded-3 adminbtn shadow" onClick={saveRecipe}>
-                                    <span> {editingRecipeIndex !== null ? "Update Recipe" : "Add Recipe"}</span>
+                                    <span> {editingRecipeIndex !== null ? "Update Recipe" : " + Add Recipe"}</span>
                                 </button>
                             </div>
                         </div>
+                    </div>
 
-                        {submitted && errors.recipes && (
-                            <small className="text-danger">{errors.recipes}</small>
-                        )}
+                    {form.recipes.length > 0 && (
+                        <div className="rounded-3 shadow overflow-hidden my-4">
+                            <div className="p-3" style={{ background: "white", borderBottom: "2px solid lightgrey" }}>
+                                <h6 className="fw-bold m-0 text-dark">
+                                    <FaDatabase className="me-2" />
+                                    Recipe Data
+                                </h6>
+                            </div>
+                            <div className="bg-white p-4 table-responsive">
+                                {fetching ? (
+                                    <div className="text-center">
+                                        <div role="status">
+                                            <img src={require("../../assets/Images/loader.gif")} className="img-fluid" alt="" />
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <table className="table table-bordered border-secondary custom-table table-hover text-center">
+                                        <thead style={{ fontSize: "15px" }}>
+                                            <tr>
+                                                <th className="text-white" style={{ width: "10%", background: "var(--red)" }}>Image</th>
+                                                <th className="text-white" style={{ width: "20%", background: "var(--red)" }}>Name</th>
+                                                <th className="text-white" style={{ width: "10%", background: "var(--red)" }}>Serving</th>
+                                                <th className="text-white" style={{ width: "10%", background: "var(--red)" }}>Prep</th>
+                                                <th className="text-white" style={{ width: "10%", background: "var(--red)" }}>Cook</th>
+                                                <th className="text-white" style={{ width: "10%", background: "var(--red)" }}>Difficulty</th>
+                                                <th className="text-white" style={{ width: "20%", background: "var(--red)" }}>Add Cooking Instructions</th>
+                                                <th className="text-white" style={{ width: "10%", background: "var(--red)" }}>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="pera">
+                                            {form.recipes.length > 0 ? (
+                                                form.recipes.map((r, i) => (
+                                                    <tr key={i}>
+                                                        <td style={{ width: "10%" }}>
+                                                            {r.image ? (
+                                                                typeof r.image === "object" ? (
+                                                                    <img src={URL.createObjectURL(r.image)} alt="recipe" width="50" />
+                                                                ) : (
+                                                                    <img src={r.image} alt="recipe" width="50" />
+                                                                )
+                                                            ) : (
+                                                                <small>No Image.</small>
+                                                            )}
+                                                        </td>
+                                                        <td style={{ width: "20%" }}>{r.recipeName}</td>
+                                                        <td style={{ width: "10%" }}>{r.serving}</td>
+                                                        <td style={{ width: "10%" }}>{r.prep_time}</td>
+                                                        <td style={{ width: "10%" }}>{r.cook_time}</td>
+                                                        <td style={{ width: "10%" }}>{r.difficulty}</td>
+                                                        <td style={{ width: "20%" }}>
+                                                            {r.cooking_instructions.map((step, idx) => (
+                                                                <div key={idx}>{step}</div>
+                                                            ))}
+                                                        </td>
+                                                        <td style={{ width: "10%" }}>
+                                                            <div className="d-flex flex-column flex-md-row flex-lg-row justify-content-center align-items-center">
+                                                                <FaEdit className="text-warning fs-5 me-0 me-md-2 mb-2 mb-md-0"
+                                                                    style={{ cursor: "pointer" }} onClick={() => editRecipe(i)} />
+                                                                <FaTrash className="text-danger fs-5" style={{ cursor: "pointer" }} onClick={() => removeRecipe(i)} />
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                ))
+                                            ) : (
+                                                <tr>
+                                                    <td colSpan="8" className="text-center text-muted">No Recipe Data Found.</td>
+                                                </tr>
+                                            )}
+                                        </tbody>
+                                    </table>
+                                )}
+                            </div>
+                        </div>
+                    )}
 
-                        {/* Recipe Table */}
-                        {form.recipes.length > 0 && (
-                            <table className="table table-bordered table-striped mb-4 text-center">
-                                <thead>
+                    <div className="mt-4 text-center">
+                        <button type="submit" className="px-4 py-1 fw-bold text-uppercase rounded-3 adminbtn shadow" disabled={formSubmitting}>
+                            <span>{editingBlogId ? "Update Blog" : "Save Blog"}</span>
+                        </button>
+                    </div>
+                </form>
+
+                <div className="rounded-3 shadow overflow-hidden my-4">
+                    <div className="p-3" style={{ background: "white", borderBottom: "2px solid lightgrey" }}>
+                        <h6 className="fw-bold m-0 text-dark">
+                            <FaDatabase className="me-2" />
+                            Added Blog Data
+                        </h6>
+                    </div>
+                    <div className="bg-white p-4 table-responsive">
+                        {fetching ? (
+                            <div className="text-center">
+                                <div role="status">
+                                    <img src={require("../../assets/Images/loader.gif")} className="img-fluid" alt="" />
+                                </div>
+                            </div>
+                        ) : (
+                            <table className="table table-bordered border-secondary custom-table table-hover text-center">
+                                <thead style={{ fontSize: "15px" }}>
                                     <tr>
-                                        <th>Image</th>
-                                        <th>Name</th>
-                                        <th>Serving</th>
-                                        <th>Prep</th>
-                                        <th>Cook</th>
-                                        <th>Difficulty</th>
-                                        <th>Steps</th>
-                                        <th>Action</th>
+                                        <th className="text-white" style={{ width: "20%", background: "var(--red)" }}>Blog Image</th>
+                                        <th className="text-white" style={{ width: "20%", background: "var(--red)" }}>Title</th>
+                                        <th className="text-white" style={{ width: "30%", background: "var(--red)" }}>Category</th>
+                                        <th className="text-white" style={{ width: "10%", background: "var(--red)" }}>Recipe</th>
+                                        <th className="text-white" style={{ width: "20%", background: "var(--red)" }}>Action</th>
                                     </tr>
                                 </thead>
-                                <tbody>
-                                    {form.recipes.map((r, i) => (
-                                        <tr key={i}>
-                                            <td>
-                                                {files.recipeImages[i] ? (
-                                                    <img src={URL.createObjectURL(files.recipeImages[i])} alt="recipe" width="60" />
-                                                ) : (
-                                                    <small>No Image</small>
-                                                )}
-                                            </td>
-                                            <td>{r.recipeName}</td>
-                                            <td>{r.serving}</td>
-                                            <td>{r.prep_time}</td>
-                                            <td>{r.cook_time}</td>
-                                            <td>{r.difficulty}</td>
-                                            <td>
-                                                {r.cooking_instructions.map((step, idx) => (
-                                                    <div key={idx}>{step}</div>
-                                                ))}
-                                            </td>
-                                            <td>
-                                                <FaEdit className="text-warning fs-5" style={{ cursor: "pointer" }} onClick={() => editRecipe(i)} />
-                                                <FaTrash className="text-danger fs-5 ms-2" style={{ cursor: "pointer" }} onClick={() => removeRecipe(i)} />
-                                            </td>
+                                <tbody className="pera">
+                                    {blogs.length > 0 ? (
+                                        blogs.map((b) => (
+                                            <tr key={b._id}>
+                                                <td style={{ width: "20%" }}>{b.blogImage && <img src={b.blogImage} alt="" width="50" />}</td>
+                                                <td style={{ width: "20%" }}>{b.title}</td>
+                                                <td style={{ width: "30%" }}>{b.category}</td>
+                                                <td style={{ width: "10%" }}>{b.recipes.length}</td>
+                                                <td style={{ width: "20%" }}>
+                                                    <div className="d-flex flex-column flex-md-row flex-lg-row justify-content-center align-items-center">
+                                                        <FaEdit className="text-warning fs-5 me-0 me-md-2 mb-2 mb-md-0" onClick={() => editBlog(b)} />
+                                                        <FaTrash
+                                                            className="text-danger fs-5"
+                                                            onClick={() => deleteBlog(b._id)}
+                                                        />
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    ) : (
+                                        <tr>
+                                            <td colSpan="5" className="text-center text-muted">No Blog Found.</td>
                                         </tr>
-                                    ))}
+                                    )}
                                 </tbody>
                             </table>
                         )}
                     </div>
                 </div>
-
-                <div className="mt-3 text-center col-12">
-                    <button type="submit" className="px-4 py-1 fw-bold text-uppercase rounded-3 adminbtn shadow" disabled={formSubmitting}>
-                        <span>{formSubmitting ? "Saving..." : editingBlogId ? "Save Changes" : "Save Blog"}</span>
-                    </button>
-                </div>
-            </form>
-
-            {formSubmitting && (
-                <div className="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center bg-white bg-opacity-75">
-                    <div className="spinner-border text-danger" role="status"></div>
-                </div>
-            )}
-
-            {/* Blogs Table */}
-            <h3 className="mt-5">📚 All Blogs</h3>
-            <table className="table table-hover">
-                <thead>
-                    <tr>
-                        <th>Image</th>
-                        <th>Title</th>
-                        <th>Category</th>
-                        <th>Recipes</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {blogs.map((b) => (
-                        <tr key={b._id}>
-                            <td>{b.blogImage && <img src={b.blogImage} alt="" width="60" />}</td>
-                            <td>{b.title}</td>
-                            <td>{b.category}</td>
-                            <td>{b.recipes.length}</td>
-                            <td>
-                                <FaEdit className="text-warning fs-5 me-2" onClick={() => editBlog(b)} />
-                                <FaTrash
-                                    className="text-danger fs-5"
-                                    onClick={() => deleteBlog(b._id)}
-                                />
-                            </td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
-        </div>
+            </div>
+        </>
     );
 }
 
-export default BlogForm;
+export default BlogForm
