@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { FaPlus } from "react-icons/fa";
+import Swal from "sweetalert2";
 
-const API_URL = "http://localhost:8000/api/heading";
+const API_URL = "https://backendvimalagro.onrender.com/api/heading";
 
 function ExtraSubHeading() {
 
@@ -20,7 +21,9 @@ function ExtraSubHeading() {
     useEffect(() => {
         const fetchProducts = async () => {
             try {
-                const res = await axios.get("https://backendvimalagro.onrender.com/api/products"); // your Product API
+                const res = await axios.get(
+                    "https://backendvimalagro.onrender.com/api/products"
+                );
                 setProducts(res.data);
             } catch (err) {
                 console.error("Error fetching products", err);
@@ -36,44 +39,59 @@ function ExtraSubHeading() {
     };
 
     const validate = () => {
-        let newErrors = {};
-        if (!formData.productId) newErrors.productId = "Please select a product.";
-        if (!formData.subproductTitle.trim())
-            newErrors.subproductTitle = "Subproduct Title is required.";
-        return newErrors;
+        if (!formData.productId || !formData.subproductTitle.trim()) {
+            Swal.fire({
+                icon: "warning",
+                title: "All Required",
+                text: "Please fill all required fields before submitting.",
+            });
+            return false;
+        }
+        return true;
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setSubmitted(true);
 
-        const validationErrors = validate();
-        if (Object.keys(validationErrors).length > 0) {
-            setErrors(validationErrors);
-            return;
-        }
+        if (!validate()) return;
 
         setFormSubmitting(true);
         try {
             await axios.post(API_URL, formData);
-            alert("✅ SubProduct Heading saved successfully!");
+            Swal.fire({
+                icon: "success",
+                title: "Success!",
+                text: "SubProduct Heading saved successfully.",
+                timer: 2000,
+                showConfirmButton: false
+            });
             setFormData({ productId: "", subproductTitle: "" });
-            setSubmitted(false);
         } catch (err) {
             console.error("Error saving subproduct heading", err);
 
             if (err.response && err.response.status === 400) {
-                // Backend duplicate error
                 if (
                     err.response.data.error?.includes("already exists") ||
                     err.response.data.error?.includes("duplicate key")
                 ) {
-                    alert("⚠️ This subproduct title already exists for the selected product.");
+                    Swal.fire({
+                        icon: "error",
+                        title: "Duplicate Entry",
+                        text: "This subproduct title already exists for the selected product.",
+                    });
                 } else {
-                    alert("❌ " + err.response.data.error);
+                    Swal.fire({
+                        icon: "error",
+                        title: "Error",
+                        text: err.response.data.error,
+                    });
                 }
             } else {
-                alert("❌ Failed to save subproduct heading.");
+                Swal.fire({
+                    icon: "error",
+                    title: "Error",
+                    text: "Failed to save subproduct heading.",
+                });
             }
         } finally {
             setFormSubmitting(false);
@@ -81,7 +99,7 @@ function ExtraSubHeading() {
     };
 
     return (
-        <div className="container mt-3 mt-lg-0 mt-md-0">
+        <div className="mt-3 mt-lg-0 mt-md-0 mb-4">
             <form onSubmit={handleSubmit} noValidate>
                 <div className="rounded-3 shadow overflow-hidden">
                     <div className="p-3"
@@ -133,15 +151,8 @@ function ExtraSubHeading() {
                     </div>
                 </div>
             </form>
-
-            {/* Loader Overlay */}
-            {formSubmitting && (
-                <div className="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center bg-white bg-opacity-75">
-                    <div className="spinner-border text-danger" role="status"></div>
-                </div>
-            )}
         </div>
     );
 }
 
-export default ExtraSubHeading;
+export default ExtraSubHeading

@@ -174,6 +174,13 @@ function ProductPage() {
 
     // Handle steps change with error clearing
     const handleStepChange = (index, value) => {
+        // split words (ignore multiple spaces)
+        const words = value.trim().split(/\s+/).filter(Boolean);
+
+        if (words.length > 15) {
+            return; // stop typing after 15 words
+        }
+
         const newSteps = [...recipe.steps];
         newSteps[index] = value;
         setRecipe({ ...recipe, steps: newSteps });
@@ -375,6 +382,8 @@ function ProductPage() {
     };
 
     const addStep = () => {
+        if (recipe.steps.length >= 10) return;
+
         const lastStep = recipe.steps[recipe.steps.length - 1];
 
         if (!lastStep || !lastStep.trim()) {
@@ -962,7 +971,7 @@ function ProductPage() {
                             />
                         </div>
                         <div className="w-100 w-lg-50 w-md-50 mt-2">
-                            <label className="d-block fw-bold">Recipe Step</label>
+                            <label className="d-block fw-bold">Recipe Step (Max 10 Steps)</label>
                             {recipe.steps.map((step, index) => (
                                 <div key={index} className="d-flex align-items-center mb-2">
                                     <input
@@ -970,7 +979,7 @@ function ProductPage() {
                                         value={step}
                                         onChange={(e) => handleStepChange(index, e.target.value)}
                                         className="mt-1 w-100 form-control border border-secondary"
-                                        placeholder={`Step ${index + 1}`}
+                                        placeholder={`Step ${index + 1} (Max 15 Words)`}
                                         disabled={formSubmitting}
                                     />
                                 </div>
@@ -979,7 +988,7 @@ function ProductPage() {
                                 type="button"
                                 className="mt-1 px-4 py-1 fw-bold text-uppercase rounded-3 adminbtn"
                                 onClick={addStep}
-                                disabled={formSubmitting}
+                                disabled={formSubmitting || recipe.steps.length >= 10}
                             >
                                 <span>+ Add Step</span>
                             </button>

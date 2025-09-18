@@ -91,7 +91,7 @@ function ExtraSubProduct() {
             Swal.fire({
                 icon: "warning",
                 title: "All Fields Required!",
-                text: "Please fill all fields before submitting.",
+                text: "Please fill all required fields before submitting.",
             });
             return;
         }
