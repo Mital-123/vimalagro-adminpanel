@@ -42,7 +42,7 @@ function ExtraSubHeading() {
         if (!formData.productId || !formData.subproductTitle.trim()) {
             Swal.fire({
                 icon: "warning",
-                title: "All Required",
+                title: "All Fields Required!",
                 text: "Please fill all required fields before submitting.",
             });
             return false;
