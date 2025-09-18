@@ -219,7 +219,7 @@ function Sidebar() {
                                 <Nav.Item className='mb-2'>
                                     <Link to="/productAdminToggle" className={`text-decoration-none nav-item ${isActive('/productAdminToggle') ? 'active' : ''}`} style={{ color: "var(--red)" }} onClick={handleLinkClick}>
                                         <MdOutlineDoubleArrow className="me-1" />
-                                        <span className="sidebar_menu fw-medium">Add Product</span>
+                                        <span className="sidebar_menu fw-medium">Product</span>
                                     </Link>
                                 </Nav.Item>
                                 <Nav.Item className='mb-2'>
@@ -248,7 +248,7 @@ function Sidebar() {
                                 <Nav.Item className="mb-2">
                                     <Link to="/blog" className={`text-decoration-none nav-item ${isActive('/blog') ? 'active' : ''}`} style={{ color: "var(--red)" }} onClick={handleLinkClick}>
                                         <MdOutlineDoubleArrow className="me-1" />
-                                        <span className="sidebar_menu fw-medium">Add Blog</span>
+                                        <span className="sidebar_menu fw-medium">Blog</span>
                                     </Link>
                                 </Nav.Item>
                             </Nav>
@@ -393,7 +393,7 @@ function Sidebar() {
                                     <Nav.Item className='mb-2'>
                                         <Link to="/productAdminToggle" className={`text-decoration-none nav-item ${isActive('/productAdminToggle') ? 'active' : ''}`} style={{ color: "var(--red)" }} onClick={handleLinkClick}>
                                             <MdOutlineDoubleArrow className="me-1" />
-                                            <span className="sidebar_menu fw-medium">Add Product</span>
+                                            <span className="sidebar_menu fw-medium">Product</span>
                                         </Link>
                                     </Nav.Item>
                                     <Nav.Item className='mb-2'>
@@ -422,7 +422,7 @@ function Sidebar() {
                                     <Nav.Item className="mb-2">
                                         <Link to="/blog" className={`text-decoration-none nav-item ${isActive('/blog') ? 'active' : ''}`} style={{ color: "var(--red)" }} onClick={handleLinkClick}>
                                             <MdOutlineDoubleArrow className="me-1" />
-                                            <span className="sidebar_menu fw-medium">Add Blog</span>
+                                            <span className="sidebar_menu fw-medium">Blog</span>
                                         </Link>
                                     </Nav.Item>
                                 </Nav>
