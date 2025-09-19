@@ -820,7 +820,7 @@ function ProductPage() {
                             <div className="w-100 w-lg-50 w-md-50 mt-2">
                                 <label className="d-block fw-bold">Weight</label>
                                 <input
-                                    type="number"
+                                    type="text"
                                     name="weight"
                                     placeholder="Enter Weight"
                                     value={sub.weight}
