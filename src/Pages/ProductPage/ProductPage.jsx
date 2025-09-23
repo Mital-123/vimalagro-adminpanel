@@ -490,7 +490,7 @@ function ProductPage() {
         });
     };
 
-   
+
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -540,7 +540,24 @@ function ProductPage() {
                 });
             }
 
-            // subproducts, recipes appending (same as before)...
+            product.subproducts.forEach((sub, index) => {
+                if (sub.subproductImg instanceof File) {
+                    formData.append(`subproductImg_${index}`, sub.subproductImg);
+                }
+            });
+            product.recipes.forEach((rec, index) => {
+                if (rec.recipeMainImg instanceof File) {
+                    formData.append(`recipeMainImg_${index}`, rec.recipeMainImg);
+                }
+                if (Array.isArray(rec.recipeSubImg)) {
+                    rec.recipeSubImg.forEach(file => {
+                        if (file instanceof File) {
+                            formData.append(`recipeSubImg_${index}`, file)
+                        }
+                    });
+                }
+            });
+
 
             if (editingProductId) {
                 await axios.put(
