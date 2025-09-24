@@ -561,7 +561,7 @@ function ProductPage() {
 
             if (editingProductId) {
                 await axios.put(
-                    `http://localhost:8000/api/products/${editingProductId}`,
+                    `https://backendvimalagro.onrender.com/api/products/${editingProductId}`,
                     formData,
                     { headers: { "Content-Type": "multipart/form-data" } }
                 );
