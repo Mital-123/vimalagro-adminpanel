@@ -23,7 +23,7 @@ function Sidebar() {
         const path = location.pathname;
 
         const homePaths = ['/homebanner', '/about', '/counter', '/testimonial', '/certificate', '/']; // '/' add kari
-        const aboutPaths = ['/aboutbanner', '/vimalaboutus', '/leaderlogo', '/ourstory', '/faq'];
+        const aboutPaths = ['/aboutbanner', '/vimalaboutus', '/leaderlogo', '/ourstory', '/faq', '/principles'];
         const productPaths = ['/productbanner', '/productAdminToggle', '/extrasubproduct'];
         const blogPaths = ['/blogbanner', '/blog'];
         const contactPaths = ['/contactbanner'];
@@ -190,6 +190,12 @@ function Sidebar() {
                                     <Link to="/ourstory" className={`text-decoration-none nav-item ${isActive('/ourstory') ? 'active' : ''}`} style={{ color: "var(--red)" }} onClick={handleLinkClick}>
                                         <MdOutlineDoubleArrow className="me-1" />
                                         <span className="sidebar_menu fw-medium">Our Story</span>
+                                    </Link>
+                                </Nav.Item>
+                                <Nav.Item className='mb-2'>
+                                    <Link to="/principles" className={`text-decoration-none nav-item ${isActive('/principles') ? 'active' : ''}`} style={{ color: "var(--red)" }} onClick={handleLinkClick}>
+                                        <MdOutlineDoubleArrow className="me-1" />
+                                        <span className="sidebar_menu fw-medium">Our Principles</span>
                                     </Link>
                                 </Nav.Item>
                                 <Nav.Item className="mb-2">
@@ -364,6 +370,12 @@ function Sidebar() {
                                         <Link to="/ourstory" className={`text-decoration-none nav-item ${isActive('/ourstory') ? 'active' : ''}`} style={{ color: "var(--red)" }} onClick={handleLinkClick}>
                                             <MdOutlineDoubleArrow className="me-1" />
                                             <span className="sidebar_menu fw-medium">Our Story</span>
+                                        </Link>
+                                    </Nav.Item>
+                                    <Nav.Item className='mb-2'>
+                                        <Link to="/principles" className={`text-decoration-none nav-item ${isActive('/principles') ? 'active' : ''}`} style={{ color: "var(--red)" }} onClick={handleLinkClick}>
+                                            <MdOutlineDoubleArrow className="me-1" />
+                                            <span className="sidebar_menu fw-medium">Our Principles</span>
                                         </Link>
                                     </Nav.Item>
                                     <Nav.Item className="mb-2">

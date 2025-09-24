@@ -181,14 +181,14 @@ function Faq() {
                                 />
                             </div>
                             <div className="w-100 w-lg-50 w-md-50 mt-2">
-                                <label className="d-block fw-bold">Answer (Max 20 Words)</label>
+                                <label className="d-block fw-bold">Answer (Max 45 Words)</label>
                                 <input
                                     type="text"
                                     name="ans"
                                     value={ans}
                                     onChange={(e) => {
                                         const words = e.target.value.trim().split(/\s+/);
-                                        if (words.length <= 20) {
+                                        if (words.length <= 45) {
                                             setAns(e.target.value);
                                         }
                                     }}
