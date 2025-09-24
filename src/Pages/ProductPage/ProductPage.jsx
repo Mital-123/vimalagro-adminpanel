@@ -793,7 +793,6 @@ function ProductPage() {
                                             }
                                             alt="Product Banner"
                                             className="object-fit-fill"
-                                            width={100}
                                             height={60}
                                         />
                                     </div>
@@ -819,7 +818,6 @@ function ProductPage() {
                                             }
                                             alt="Product Banner"
                                             className="object-fit-fill"
-                                            width={100}
                                             height={60}
                                         />
                                     </div>
@@ -846,7 +844,6 @@ function ProductPage() {
                                             }
                                             alt="Banner 2"
                                             className="object-fit-fill"
-                                            width={100}
                                             height={60}
                                         />
                                     </div>
@@ -869,7 +866,6 @@ function ProductPage() {
                                             }
                                             alt="Banner 2 Mobile"
                                             className="object-fit-fill"
-                                            width={100}
                                             height={60}
                                         />
                                     </div>
@@ -899,7 +895,6 @@ function ProductPage() {
                                             }
                                             alt="How To Make Banner"
                                             className="object-fit-fill"
-                                            width={100}
                                             height={60}
                                         />
                                     </div>
@@ -922,7 +917,6 @@ function ProductPage() {
                                             }
                                             alt="howToMake Banner Mobile"
                                             className="object-fit-fill"
-                                            width={100}
                                             height={60}
                                         />
                                     </div>
@@ -1179,7 +1173,6 @@ function ProductPage() {
                                                 key={i}
                                                 src={img instanceof File ? URL.createObjectURL(img) : img}
                                                 alt={`Recipe Sub ${i + 1}`}
-                                                width={100}
                                                 height={60}
                                                 className="object-fit-fill mt-2"
                                             />
