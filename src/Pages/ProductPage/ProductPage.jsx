@@ -561,7 +561,7 @@ function ProductPage() {
 
             if (editingProductId) {
                 await axios.put(
-                    `https://backendvimalagro.onrender.com/api/products/${editingProductId}`,
+                    `http://localhost:8000/api/products/${editingProductId}`,
                     formData,
                     { headers: { "Content-Type": "multipart/form-data" } }
                 );
@@ -731,7 +731,7 @@ function ProductPage() {
                             />
                             {loadingImages.productImages && <div>Loading images...</div>}
                             <div className="mt-2">
-                                {[...product.productImages, ...files.productImages].map((img, i) => {
+                                {/* {[...product.productImages, ...files.productImages].map((img, i) => {
                                     const src = typeof img === "string" ? img : URL.createObjectURL(img);
                                     return (
                                         <img
@@ -743,7 +743,32 @@ function ProductPage() {
                                             className="me-2 object-fit-fill"
                                         />
                                     );
-                                })}
+                                })} */}
+                                <div className="image-preview">
+                                    {files.productImages && files.productImages.length > 0 ? (
+                                        // Show only newly selected images
+                                        files.productImages.map((file, idx) => (
+                                            <img
+                                                key={idx}
+                                                src={URL.createObjectURL(file)}
+                                                alt="New Preview"
+                                                style={{ width: "100px", margin: "5px" }}
+                                            />
+                                        ))
+                                    ) : (
+                                        // Show DB images only if no new ones selected
+                                        product.productImages &&
+                                        product.productImages.map((img, idx) => (
+                                            <img
+                                                key={idx}
+                                                src={img}
+                                                alt="Old Preview"
+                                                style={{ width: "100px", margin: "5px" }}
+                                            />
+                                        ))
+                                    )}
+                                </div>
+
                             </div>
                         </div>
                         <div className="d-lg-flex d-md-flex gap-3">
