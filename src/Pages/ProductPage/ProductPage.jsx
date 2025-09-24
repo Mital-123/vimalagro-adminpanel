@@ -861,8 +861,18 @@ function ProductPage() {
                                     ref={banner2MobileRef}
                                     disabled={formSubmitting || loadingImages.banner2Mobile}
                                 />
-                                {product.banner2Mobile && (
-                                    <img src={product.banner2Mobile} alt="" width={100} height={60} className="mt-2" />
+                                {(files.banner2Mobile || product.banner2Mobile) && !loadingImages.banner2Mobile && (
+                                    <div className="mt-2">
+                                        <img
+                                            src={
+                                                files.banner2Mobile ? URL.createObjectURL(files.banner2Mobile) : product.banner2Mobile
+                                            }
+                                            alt="Banner 2 Mobile"
+                                            className="object-fit-fill"
+                                            width={100}
+                                            height={60}
+                                        />
+                                    </div>
                                 )}
                             </div>
                         </div>
@@ -904,8 +914,18 @@ function ProductPage() {
                                     ref={howToMakeBannerMobileRef}
                                     disabled={formSubmitting || loadingImages.howToMakeBannerMobile}
                                 />
-                                {product.howToMakeBannerMobile && (
-                                    <img src={product.howToMakeBannerMobile} alt="" width={100} height={60} className="mt-2" />
+                                {(files.howToMakeBannerMobile || product.howToMakeBannerMobile) && !loadingImages.howToMakeBannerMobile && (
+                                    <div className="mt-2">
+                                        <img
+                                            src={
+                                                files.howToMakeBannerMobile ? URL.createObjectURL(files.howToMakeBannerMobile) : product.howToMakeBannerMobile
+                                            }
+                                            alt="howToMake Banner Mobile"
+                                            className="object-fit-fill"
+                                            width={100}
+                                            height={60}
+                                        />
+                                    </div>
                                 )}
                             </div>
                         </div>
