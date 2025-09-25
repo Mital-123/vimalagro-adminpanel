@@ -21,6 +21,7 @@ import ContactBanner from './Pages/ContactPage/ContactBanner';
 import ExtraSubProduct from './Pages/ProductPage/ExtraSubProduct';
 import BlogForm from './Pages/BlogPage/BlogForm';
 import Principles from './Pages/AboutPage/Principles';
+import OurCategory from './Pages/HomePage/OurCategory';
 
 function App() {
 
@@ -54,6 +55,7 @@ function App() {
                     <Route path='/ourstory' element={<Ourstory />} />
                     <Route path='/aboutbanner' element={<AboutBanner />} />
                     <Route path='/productbanner' element={<ProductBanner />} />
+                    <Route path='/ourcategory' element={<OurCategory />} />
                     <Route path='/blogbanner' element={<BlogBanner />} />
                     <Route path='/contactbanner' element={<ContactBanner />} />
                     <Route path='/blog' element={<BlogForm />} />

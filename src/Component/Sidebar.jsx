@@ -24,7 +24,7 @@ function Sidebar() {
 
         const homePaths = ['/homebanner', '/about', '/counter', '/testimonial', '/certificate', '/']; // '/' add kari
         const aboutPaths = ['/aboutbanner', '/vimalaboutus', '/leaderlogo', '/ourstory', '/faq', '/principles'];
-        const productPaths = ['/productbanner', '/productAdminToggle', '/extrasubproduct'];
+        const productPaths = ['/productbanner', '/productAdminToggle', '/extrasubproduct','/ourcategory'];
         const blogPaths = ['/blogbanner', '/blog'];
         const contactPaths = ['/contactbanner'];
 
@@ -234,6 +234,12 @@ function Sidebar() {
                                         <span className="sidebar_menu fw-medium">Extra SubProduct</span>
                                     </Link>
                                 </Nav.Item>
+                                <Nav.Item className='mb-2'>
+                                    <Link to="/ourcategory" className={`text-decoration-none nav-item ${isActive('/ourcategory') ? 'active' : ''}`} style={{ color: "var(--red)" }} onClick={handleLinkClick}>
+                                        <MdOutlineDoubleArrow className="me-1" />
+                                        <span className="sidebar_menu fw-medium">Our Categories</span>
+                                    </Link>
+                                </Nav.Item>
                             </Nav>
                         )}
                     </div>
@@ -412,6 +418,12 @@ function Sidebar() {
                                         <Link to="/extrasubproduct" className={`text-decoration-none nav-item ${isActive('/extrasubproduct') ? 'active' : ''}`} style={{ color: "var(--red)" }} onClick={handleLinkClick}>
                                             <MdOutlineDoubleArrow className="me-1" />
                                             <span className="sidebar_menu fw-medium">Extra SubProduct</span>
+                                        </Link>
+                                    </Nav.Item>
+                                    <Nav.Item className='mb-2'>
+                                        <Link to="/ourcategory" className={`text-decoration-none nav-item ${isActive('/ourcategory') ? 'active' : ''}`} style={{ color: "var(--red)" }} onClick={handleLinkClick}>
+                                            <MdOutlineDoubleArrow className="me-1" />
+                                            <span className="sidebar_menu fw-medium">Our Categories</span>
                                         </Link>
                                     </Nav.Item>
                                 </Nav>
