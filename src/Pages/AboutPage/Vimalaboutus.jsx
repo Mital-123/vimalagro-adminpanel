@@ -188,7 +188,7 @@ function Vimalaboutus() {
                     </div>
                     <div className="px-4 pb-4 pt-2 bg-white">
                         <div className="w-100 w-lg-50 w-md-50 mt-2">
-                            <label className="d-block fw-bold">About Us Image</label>
+                            <label className="d-block fw-bold">About Us Image( 1500px × 1004px)</label>
                             <input
                                 type="file"
                                 name="vimalaboutimage"

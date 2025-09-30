@@ -209,12 +209,12 @@ function Principles() {
                         </div>
                         <div className="d-lg-flex d-md-flex gap-3">
                             <div className="w-100 w-lg-50 w-md-50 mt-2">
-                                <label className="d-block fw-bold">Principles Image</label>
+                                <label className="d-block fw-bold">Principles Image (794px × 528px)</label>
                                 <input type="file" name="principleimage" ref={principleImageRef} onChange={handleChange} className="mt-1 w-100 form-control border border-secondary" />
                                 {preview.principleimage && <img src={preview.principleimage} alt="Preview" className="mt-2" style={{ height: "60px", objectFit: "contain" }} />}
                             </div>
                             <div className="w-100 w-lg-50 w-md-50 mt-2">
-                                <label className="d-block fw-bold">Principles SubImage</label>
+                                <label className="d-block fw-bold">Principles SubImage (100px × 100px)</label>
                                 <input type="file" name="smallpngimage" ref={subImageRef} onChange={handleChange} className="mt-1 w-100 form-control border border-secondary" />
                                 {preview.smallpngimage && <img src={preview.smallpngimage} alt="Preview" className="mt-2" style={{ height: "60px", objectFit: "contain" }} />}
                             </div>

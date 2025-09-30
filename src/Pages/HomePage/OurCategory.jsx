@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { FaDatabase, FaEdit, FaPlus, FaTrash } from "react-icons/fa";
 import Swal from "sweetalert2";
-const API_URL = "http://localhost:8000/categories";
+const API_URL = "https://backendvimalagro.onrender.com/categories";
 function OurCategory() {
     const [categoriesData, setCategoriesData] = useState([]);
     const [imagePreviews, setImagePreviews] = useState([]);
@@ -266,7 +266,7 @@ function OurCategory() {
                                     <textarea name="description" placeholder="Enter Description" value={cat.description} onChange={(e) => handleChange(e, index)} className="mt-1 w-100 form-control border border-secondary" />
                                 </div>
                                 <div className="mt-2">
-                                    <label className="d-block fw-bold">Category Banner</label>
+                                    <label className="d-block fw-bold">Category Banner (Rectangle Shape)</label>
                                     <input type="file" ref={(el) => fileInputRef.current[index] = el} name="categoryBanner" className="mt-1 w-100 form-control border border-secondary" onChange={(e) => handleChange(e, index)} />
                                     {imagePreviews[index] && <img src={imagePreviews[index]} alt="preview" width={60} height={60} className="mt-2 object-fit-fill" />}
                                 </div>

@@ -184,7 +184,7 @@ function HomeAbout() {
                     <div className="px-4 pb-4 pt-2 bg-white">
                         <div className="d-lg-flex d-md-flex gap-3">
                             <div className="w-100 w-lg-50 w-md-50 mt-2">
-                                <label className="d-block fw-bold">Image 1</label>
+                                <label className="d-block fw-bold">Image 1 (360px × 449px(Vertically Rectangle))</label>
                                 <input
                                     type="file"
                                     name="image1"
@@ -203,7 +203,7 @@ function HomeAbout() {
                                 )}
                             </div>
                             <div className="w-100 w-lg-50 w-md-50 mt-2">
-                                <label className="d-block fw-bold">Image 2</label>
+                                <label className="d-block fw-bold">Image 2 (360px × 450px (Vertically Rectangle))</label>
                                 <input
                                     type="file"
                                     name="image2"
@@ -224,7 +224,7 @@ function HomeAbout() {
                         </div>
                         <div className="d-lg-flex d-md-flex gap-3">
                             <div className="w-100 w-lg-50 w-md-50 mt-2">
-                                <label className="d-block fw-bold">Image 3</label>
+                                <label className="d-block fw-bold">Image 3 (360px × 503px (Vertically Rectangle))</label>
                                 <input
                                     type="file"
                                     name="image3"
@@ -243,7 +243,7 @@ function HomeAbout() {
                                 )}
                             </div>
                             <div className="w-100 w-lg-50 w-md-50 mt-2">
-                                <label className="d-block fw-bold">Image 4</label>
+                                <label className="d-block fw-bold">Image 4 (800px × 800px(Square shape))</label>
                                 <input
                                     type="file"
                                     name="image4"

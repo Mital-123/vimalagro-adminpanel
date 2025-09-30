@@ -127,7 +127,7 @@ function Leaderlog() {
           </div>
           <div className="px-4 pb-4 pt-2 bg-white">
             <div className="w-100 w-lg-50 w-md-50 mt-2">
-              <label className="d-block fw-bold">Leader Logo Image</label>
+              <label className="d-block fw-bold">Leader Logo Image (size not required like... square or rectangle)</label>
               <input
                 type="file"
                 name="Leaderlogoimage"

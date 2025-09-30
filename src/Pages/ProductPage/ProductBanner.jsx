@@ -214,7 +214,7 @@ function ProductBanner() {
                     <div className="px-4 pb-4 pt-2 bg-white">
                         <div className="d-lg-flex d-md-flex gap-3">
                             <div className="w-100 w-lg-50 w-md-50 mt-2">
-                                <label className="d-block fw-bold">Banner (Desktop View)</label>
+                                <label className="d-block fw-bold">Banner (Desktop View- Horizotally Rectangle)</label>
                                 <input
                                     type="file"
                                     name="desktopproductbanner"

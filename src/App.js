@@ -17,7 +17,6 @@ import HomeBanner from './Pages/HomePage/HomeBanner';
 import AboutBanner from './Pages/AboutPage/AboutBanner';
 import ProductBanner from './Pages/ProductPage/ProductBanner';
 import BlogBanner from './Pages/BlogPage/BlogBanner';
-import ContactBanner from './Pages/ContactPage/ContactBanner';
 import ExtraSubProduct from './Pages/ProductPage/ExtraSubProduct';
 import BlogForm from './Pages/BlogPage/BlogForm';
 import Principles from './Pages/AboutPage/Principles';
@@ -57,7 +56,6 @@ function App() {
                     <Route path='/productbanner' element={<ProductBanner />} />
                     <Route path='/ourcategory' element={<OurCategory />} />
                     <Route path='/blogbanner' element={<BlogBanner />} />
-                    <Route path='/contactbanner' element={<ContactBanner />} />
                     <Route path='/blog' element={<BlogForm />} />
                     <Route path='/principles' element={<Principles />} />
                   </Routes>

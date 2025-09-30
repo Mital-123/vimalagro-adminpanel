@@ -99,6 +99,7 @@ textarea.form-control:focus {
   -webkit-mask: linear-gradient(black 5px, transparent 5px);
 }
 input::placeholder {
+  text-transform: capitalize;
   font-size: 12.7px;
 }
 select {

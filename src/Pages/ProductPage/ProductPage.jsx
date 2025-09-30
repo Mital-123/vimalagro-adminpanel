@@ -720,7 +720,7 @@ function ProductPage() {
                             </div>
                         </div>
                         <div className="w-100 w-lg-50 w-md-50 mt-2">
-                            <label className="d-block fw-bold">Product Image</label>
+                            <label className="d-block fw-bold">Product Images</label>
                             <input
                                 type="file"
                                 className="mt-1 w-100 form-control border border-secondary"
@@ -774,7 +774,7 @@ function ProductPage() {
                         <div className="d-lg-flex d-md-flex gap-3">
 
                             <div className="w-100 w-lg-50 w-md-50 mt-2">
-                                <label className="d-block fw-bold">Product Banner</label>
+                                <label className="d-block fw-bold">Product Banner(horizontally Rectangle)</label>
                                 <input
                                     type="file"
                                     className="mt-1 w-100 form-control border border-secondary"
@@ -799,7 +799,7 @@ function ProductPage() {
                                 )}
                             </div>
                             <div className="w-100 w-lg-50 w-md-50 mt-2">
-                                <label className="d-block fw-bold">Product Banner (Mobile)</label>
+                                <label className="d-block fw-bold">Product Banner-Mobile (Vertically Rectangle)</label>
                                 <input
                                     type="file"
                                     className="mt-1 w-100 form-control border border-secondary"
@@ -827,7 +827,7 @@ function ProductPage() {
                         </div>
                         <div className="d-lg-flex d-md-flex gap-3">
                             <div className="w-100 w-lg-50 w-md-50 mt-2">
-                                <label className="d-block fw-bold">Banner 2</label>
+                                <label className="d-block fw-bold">Banner 2(horizontally Rectangle)</label>
                                 <input
                                     type="file"
                                     className="mt-1 w-100 form-control border border-secondary"
@@ -850,7 +850,7 @@ function ProductPage() {
                                 )}
                             </div>
                             <div className="w-100 w-lg-50 w-md-50 mt-2">
-                                <label className="d-block fw-bold">Banner 2 (Mobile)</label>
+                                <label className="d-block fw-bold">Banner2-Mobile (Vertically Rectangle)</label>
                                 <input
                                     type="file"
                                     className="mt-1 w-100 form-control border border-secondary"
@@ -876,7 +876,7 @@ function ProductPage() {
 
                         <div className="d-lg-flex d-md-flex gap-3">
                             <div className="w-100 w-lg-50 w-md-50 mt-2">
-                                <label className="d-block fw-bold">How To Make Banner</label>
+                                <label className="d-block fw-bold">How To Make Banner(horizontally Rectangle)</label>
                                 <input
                                     type="file"
                                     className="mt-1 w-100 form-control border border-secondary"
@@ -901,7 +901,7 @@ function ProductPage() {
                                 )}
                             </div>
                             <div className="w-100 w-lg-50 w-md-50 mt-2">
-                                <label className="d-block fw-bold">How To Make Banner (Mobile)</label>
+                                <label className="d-block fw-bold">How To Make Banner-Mobile (Vertically Rectangle)</label>
                                 <input
                                     type="file"
                                     className="mt-1 w-100 form-control border border-secondary"
@@ -959,7 +959,7 @@ function ProductPage() {
                                     placeholder="Enter Weight"
                                     value={sub.weight}
                                     onChange={handleSubChange}
-                                    className={`mt-1 w-100 form-control border ${subSubmitted && subErrors.weight ? "border-danger" : "border-secondary"
+                                    className={`text-uppercase mt-1 w-100 form-control border ${subSubmitted && subErrors.weight ? "border-danger" : "border-secondary"
                                         }`}
                                     disabled={formSubmitting}
                                 />
@@ -1129,7 +1129,7 @@ function ProductPage() {
                         </div>
                         <div className="d-lg-flex d-md-flex gap-3">
                             <div className="w-100 w-lg-50 w-md-50 mt-2">
-                                <label className="d-block fw-bold">Main Recipe Image</label>
+                                <label className="d-block fw-bold">Main Recipe Image(Square Shape Required)</label>
                                 <input
                                     type="file"
                                     ref={recipeMainImgRef}
@@ -1157,7 +1157,7 @@ function ProductPage() {
                                 )}
                             </div>
                             <div className="w-100 w-lg-50 w-md-50 mt-2">
-                                <label className="d-block fw-bold">Sub Recipe Image</label>
+                                <label className="d-block fw-bold">Sub Recipe Image(Square Shape Required)</label>
                                 <input
                                     type="file"
                                     ref={recipeSubImgRef}

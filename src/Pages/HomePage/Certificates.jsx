@@ -123,7 +123,7 @@ function Certificates() {
                     </div>
                     <div className="px-4 pb-4 pt-2 bg-white">
                         <div className="w-100 w-lg-50 w-md-50 mt-2">
-                            <label className="d-block fw-bold">Certificate Image</label>
+                            <label className="d-block fw-bold">Certificate Image (Square shape and  all certificates images are in same size required.)</label>
                             <input
                                 type="file"
                                 name="CertificateImage"

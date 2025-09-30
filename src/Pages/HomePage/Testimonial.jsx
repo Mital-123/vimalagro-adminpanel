@@ -145,7 +145,7 @@ function Testimonial() {
                 <input type="text" name="testimonialname" value={formData.testimonialname} onChange={handleChange} className="mt-1 w-100 form-control border border-secondary" placeholder="Enter Name" />
               </div>
               <div className="w-100 w-lg-50 w-md-50 mt-2">
-                <label className="d-block fw-bold">Image</label>
+                <label className="d-block fw-bold">Image (Square shape)</label>
                 <input type="file" name="testimonialimage" ref={fileInputRef} onChange={handleChange} className="mt-1 w-100 form-control border border-secondary" />
               </div>
             </div>

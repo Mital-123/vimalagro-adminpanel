@@ -445,7 +445,7 @@ function BlogForm() {
                             </div>
                             <div className="d-lg-flex d-md-flex gap-3">
                                 <div className="w-100 w-lg-50 w-md-50 mt-2">
-                                    <label className="d-block fw-bold">Blog Banner (Desktop)</label>
+                                    <label className="d-block fw-bold">Blog Banner(horizontally Rectangle)</label>
                                     <input type="file" ref={blogBannerRef} className="mt-1 w-100 form-control border border-secondary" onChange={(e) => handleFile(e, "blogBanner")} />
                                     <div className="mt-2">
                                         {files.blogBanner ? (
@@ -456,7 +456,7 @@ function BlogForm() {
                                     </div>
                                 </div>
                                 <div className="w-100 w-lg-50 w-md-50 mt-2">
-                                    <label className="d-block fw-bold">Blog Banner (Mobile)</label>
+                                    <label className="d-block fw-bold">Blog Banner(Vertically Rectangle)</label>
                                     <input type="file" ref={blogBannerMobileRef} className="mt-1 w-100 form-control border border-secondary" onChange={(e) => handleFile(e, "blogBannerMobile")} />
                                     <div className="mt-2">
                                         {files.blogBannerMobile ? (
@@ -540,7 +540,7 @@ function BlogForm() {
                                 </div>
                             </div>
                             <div className="w-100 w-lg-50 w-md-50 mt-2">
-                                <label className="d-block fw-bold">Recipe Image</label>
+                                <label className="d-block fw-bold">Recipe Image (526px × 300px)</label>
                                 <input
                                     type="file"
                                     ref={recipeImageRef}
