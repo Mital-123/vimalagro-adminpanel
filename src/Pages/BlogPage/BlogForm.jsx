@@ -321,7 +321,7 @@ function BlogForm() {
                     showConfirmButton: false
                 });
             } else {
-                await axios.post("http://localhost:8000/api/blogs/add", data, {
+                await axios.post("https://backendvimalagro.onrender.com/api/blogs/add", data, {
                     headers: { "Content-Type": "multipart/form-data" },
                 });
                 Swal.fire({
