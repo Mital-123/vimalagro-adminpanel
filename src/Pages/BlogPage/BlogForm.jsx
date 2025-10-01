@@ -31,9 +31,9 @@ function BlogForm() {
     // Recipe form state
     const [recipeForm, setRecipeForm] = useState({
         recipeName: "",
-        serving: null,
-        prep_time: null,
-        cook_time: null,
+        serving: "",
+        prep_time: "",
+        cook_time: "",
         description: "",
         difficulty: "",
         ingredients: [""],
@@ -84,9 +84,9 @@ function BlogForm() {
         const err = {};
         if (!recipeForm.recipeName.trim()) err.recipeName = "Recipe name is required";
         if (!recipeForm.description.trim()) err.description = "Description is required";
-        if (!recipeForm.serving || recipeForm.serving <= 0) err.serving = "Serving must be > 0";
-        if (!recipeForm.prep_time || recipeForm.prep_time <= 0) err.prep_time = "Prep time required";
-        if (!recipeForm.cook_time || recipeForm.cook_time <= 0) err.cook_time = "Cook time required";
+        if (!recipeForm.serving.trim()) err.serving = "serving is required";
+        if (!recipeForm.prep_time.trim()) err.prep_time = "prep_time is required";
+        if (!recipeForm.cook_time.trim()) err.cook_time = "cook_time is required";
         if (!recipeForm.ingredients.some((i) => i.trim() !== ""))
             err.ingredients = "At least one ingredient required";
         if (!recipeForm.cooking_instructions.some((i) => i.trim() !== ""))
@@ -321,7 +321,7 @@ function BlogForm() {
                     showConfirmButton: false
                 });
             } else {
-                await axios.post("https://backendvimalagro.onrender.com/api/blogs/add", data, {
+                await axios.post("http://localhost:8000/api/blogs/add", data, {
                     headers: { "Content-Type": "multipart/form-data" },
                 });
                 Swal.fire({
@@ -333,7 +333,7 @@ function BlogForm() {
                 });
             }
 
-            setForm({ title: "", description: "", category: "", recipes: [], serving: null, prep_time: null, cook_time: null });
+            setForm({ title: "", description: "", category: "", recipes: [], serving: '', prep_time: '', cook_time: '' });
             setFiles({ blogImage: null, blogBanner: null, blogBannerMobile: null, recipeImages: {} });
 
             if (blogImageRef.current) blogImageRef.current.value = "";
@@ -488,15 +488,15 @@ function BlogForm() {
                             <div className="d-lg-flex d-md-flex gap-3">
                                 <div className="w-100 w-lg-50 w-md-50 mt-2">
                                     <label className="d-block fw-bold">Serving</label>
-                                    <input type="number" placeholder="0" value={recipeForm.serving} onChange={(e) => handleRecipeField("serving", e.target.value)} className="mt-1 w-100 form-control border border-secondary" />
+                                    <input type="text" placeholder="Serving" value={recipeForm.serving} onChange={(e) => handleRecipeField("serving", e.target.value)} className="mt-1 w-100 form-control border border-secondary" />
                                 </div>
                                 <div className="w-100 w-lg-50 w-md-50 mt-2">
                                     <label className="d-block fw-bold">Prep Time (min)</label>
-                                    <input type="number" placeholder="0 min" value={recipeForm.prep_time} onChange={(e) => handleRecipeField("prep_time", e.target.value)} className="mt-1 w-100 form-control border border-secondary" />
+                                    <input type="text" placeholder="prep_time" value={recipeForm.prep_time} onChange={(e) => handleRecipeField("prep_time", e.target.value)} className="mt-1 w-100 form-control border border-secondary" />
                                 </div>
                                 <div className="w-100 w-lg-50 w-md-50 mt-2">
                                     <label className="d-block fw-bold">Cook Time (min)</label>
-                                    <input type="number" placeholder="0 min" value={recipeForm.cook_time} onChange={(e) => handleRecipeField("cook_time", e.target.value)} className="mt-1 w-100 form-control border border-secondary" />
+                                    <input type="text" placeholder="cook_time" value={recipeForm.cook_time} onChange={(e) => handleRecipeField("cook_time", e.target.value)} className="mt-1 w-100 form-control border border-secondary" />
                                 </div>
                                 <div className="w-100 w-lg-50 w-md-50 mt-2">
                                     <label className="d-block fw-bold">Difficulty</label>
