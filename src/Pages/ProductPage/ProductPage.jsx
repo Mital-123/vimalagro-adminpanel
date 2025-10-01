@@ -1088,7 +1088,7 @@ function ProductPage() {
                     >
                         <h6 className="fw-bold m-0 text-dark">
                             <FaPlus className="me-2" />
-                            Add Recipe
+                            Add Recipe(Minimum 2 Recepie Required)
                         </h6>
                     </div>
                     <div className="px-4 pb-4 pt-2 bg-white">
